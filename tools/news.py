@@ -1,5 +1,6 @@
 from google import genai
 from google.genai import types
+from collections import defaultdict
 import datetime
 from config import TEXT_MODEL
 
@@ -23,9 +24,19 @@ def collect_news(topic: str):
     )
 
     summary = response["candidates"]["content"]["parts"]["text"]
-    sources = {}
+    sources = defaultdict(list)
     
+    # time complexity might be an issue
     for url in response["candidates"]["groundingMetadata"]["groundingChunks"]:
-        title
-        if sources[title]
+        for web in url:
+            title = web["title"]
+            uri = web["uri"]
+            sources[title].append(uri)
+            
+    contents = {
+        "summary": summary,
+        "sources": sources,
+    }
+
+    return contents
 
