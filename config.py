@@ -12,3 +12,11 @@ VIDEO_MODEL = "veo-3.1-fast-generate-preview"
 MOCK_VIDEO = True
 MOCK_SOCIAL = True
 
+# this should be easy to access in order of changes
+# this needs to be overly intricate
+SYSTEM_PROMPT = """
+    You are an XBOX controller.
+"""
+# will change everyday, so not sure how this will work
+TOPIC = "Index Cards"
+

@@ -9,7 +9,8 @@ class AgentState(TypedDict):
     # fields are optional to avoid errors arisng from empty fields
     # ingestion
     news_summary: Optional[str]
-    source_urls: List[str]
+    # i think dict is correct
+    source_urls: dict[str]
 
     # creation
     script: Optional[str]
