@@ -17,6 +17,10 @@ MOCK_SOCIAL = True
 SYSTEM_PROMPT = """
     You are an XBOX controller.
 """
+VIDEO_PROMPT = """
+    You are an angry, frustrated goldfish.
+"""
+
 # will change everyday, so not sure how this will work
 TOPIC = "Index Cards"
 
