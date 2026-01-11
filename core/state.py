@@ -17,6 +17,7 @@ class AgentState(TypedDict):
     video_prompt: Optional[str]
     # link to the final video
     video_url: Optional[str]
+    video_description: Optional[str]
 
     # status tracking
     is_complete: bool

@@ -4,6 +4,12 @@ PROJECT_ID = config("GOOGLE_CLOUD_PROJECT_ID")
 LOCATION = config("GOOGLE_CLOUD_REGION")
 BUCKET_NAME = config("BUCKET_NAME")
 
+SENDER_EMAIL = config("SENDER_EMAIL")
+SENDER_PASSWORD = config("SENDER_PASSWORD")
+RECIPIENT_EMAIL = config("RECIPIENT_EMAIL")
+APPROVAL_URL = config("APPROVAL_URL")
+
+
 # for testing purposes its a bit cheaper than 3.0
 TEXT_MODEL = "gemini-2.5-pro"
 VIDEO_MODEL = "veo-3.1-fast-generate-preview"
