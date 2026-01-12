@@ -9,6 +9,8 @@ SENDER_PASSWORD = config("SENDER_PASSWORD")
 RECIPIENT_EMAIL = config("RECIPIENT_EMAIL")
 APPROVAL_URL = config("APPROVAL_URL")
 
+SPREADSHEET_ID = config("SPREADSHEET_ID")
+
 
 # for testing purposes its a bit cheaper than 3.0
 TEXT_MODEL = "gemini-2.5-pro"

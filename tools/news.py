@@ -30,7 +30,7 @@ def collect_news(topic: str):
             candidate = response.candidates[0]
 
             if candidate.content and candidate.content.parts:
-                summary = response.candidates.content.parts[0].text
+                summary = candidate.content.parts[0].text
             else:
                 summary = "No summary generated."
 
