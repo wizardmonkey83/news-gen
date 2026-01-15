@@ -18,6 +18,7 @@ VIDEO_MODEL = "veo-3.1-fast-generate-preview"
 
 # for testing theres no need to generate videos or post to socials
 MOCK_VIDEO = True
+MOCK_NEWS = True
 MOCK_SOCIAL = True
 LOCAL_DEV = True
 

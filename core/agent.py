@@ -1,4 +1,3 @@
-import config
 from config import TEXT_MODEL, VIDEO_PROMPT, LOCAL_DEV, DESCRIPTION_PROMPT
 from tools.social import post_tweet
 from tools.news import collect_news
@@ -18,15 +17,8 @@ from langgraph.graph import StateGraph, START, END
 from google import genai
 from datetime import date
 
-model = init_chat_model(
-    TEXT_MODEL,
-    # how creative responses are. higher is more creative/varied
-    temperature=0.0
-)
-
 def starter(state: AgentState):
     topic = get_topic()
-    config.TOPIC = topic
     return {"topic": topic}
 
 def editor(state: AgentState):
@@ -58,11 +50,9 @@ def publisher(state: AgentState):
     return {"is_complete": True}
 
 graph = StateGraph(AgentState)
-if LOCAL_DEV:
-    memory = MemorySaver()
-else:
-    client = firestore.Client()
-    memory = FirestoreSaver(client=client)
+
+client = firestore.Client()
+memory = FirestoreSaver(client=client)
 # thread_id is the slot the state is saved to
 config = {"configurable": {"thread_id": f"{date.today()}"}}
 

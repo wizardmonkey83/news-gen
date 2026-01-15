@@ -8,13 +8,14 @@ import random
 client = genai.Client()
 
 def generate_video(prompt: str, topic: str):
-    # think this is a fine way to create titles in case of re-using topics
-    num = random.randint(0, 1000)
-    filename = f"{topic}_{num}.mp4"
     # only allowed to write files to the /tmp directory
     local_path = f"/tmp/{filename}"
 
     if not MOCK_VIDEO:
+        # think this is a fine way to create titles in case of re-using topics
+        num = random.randint(0, 1000)
+        filename = f"{topic}_{num}.mp4"
+
         operation = client.models.generate_videos(
             model=VIDEO_MODEL,
             prompt=prompt,
@@ -40,22 +41,28 @@ def generate_video(prompt: str, topic: str):
 
         return {"gs_link": f"gs://{BUCKET_NAME}/{filename}", "filename": filename}
     else:
-        # to avoid creating test videos
+        print("GENERATING MOCK VIDEO.....")
+        filename = "mock_video.mp4"
         return {"gs_link": f"gs://{BUCKET_NAME}/mock_video.mp4", "filename": filename}
     
 def generate_description(video_url: str, prompt: str, filename: str):
-    storage_client = storage.Client()
+    if not MOCK_VIDEO:
+        storage_client = storage.Client()
 
-    local_path = f"/tmp/{filename}"
-    bucket = storage_client.bucket(BUCKET_NAME)
-    blob = bucket.blob(filename)
-    blob.download_to_filename(local_path)
-    
-    gemini_client = genai.Client()
+        local_path = f"/tmp/{filename}"
+        bucket = storage_client.bucket(BUCKET_NAME)
+        blob = bucket.blob(filename)
+        blob.download_to_filename(local_path)
+        
+        gemini_client = genai.Client()
 
-    file = client.files.upload(file=local_path)
-    response = client.models.generate_content(
-        model=TEXT_MODEL, 
-        contents=[file, prompt]
-    )
-    return response.text
+        file = gemini_client.files.upload(file=local_path)
+        response = gemini_client.models.generate_content(
+            model=TEXT_MODEL, 
+            contents=[file, prompt]
+        )
+        gemini_client.files.delete(name=file.name)
+        return response.text
+    else:
+        print("GENERATING MOCK POST DESCRIPTION....")
+        return "Wow, this video is super awesome and you should totally watch it!"
