@@ -3,6 +3,7 @@ from tools.social import post_tweet
 from tools.news import collect_news
 from tools.video import generate_video
 from tools.notification import send_request
+from tools.sheets import get_topic
 from state import AgentState
 
 from langchain.tools import tool
@@ -22,6 +23,10 @@ model = init_chat_model(
     temperature=0.0
 )
 
+def starter(state: AgentState):
+    topic = get_topic()
+    return {"topic": topic}
+
 def editor(state: AgentState):
     result = collect_news(TOPIC)
     news_summary = result["summary"]
@@ -38,7 +43,8 @@ def notifier(state: AgentState, config: RunnableConfig):
     video_url = state["video_url"]
     post_description = state["post_description"]
     thread_id = config["configurable"].get("thread_id")
-
+    # not super sure how to call this
+    send_request(video_url, post_description, thread_id)
 
 # once video is approved for publishing
 def publisher(state: AgentState):
@@ -55,12 +61,14 @@ else:
 # thread_id is the slot the state is saved to
 config = {"configurable": {"thread_id": f"{date.today()}"}}
 
+graph.add_node("starter", starter)
 graph.add_node("editor", editor)
 graph.add_node("director", director)
 graph.add_node("notifier", notifier)
 graph.add_node("publisher", publisher)
 
-graph.add_edge(START, "editor")
+graph.add_edge(START, "starter")
+graph.add_edge("starter", "editor")
 graph.add_edge("editor", "director")
 graph.add_edge("director", "notifier")
 graph.add_edge("notifier", "publisher")
