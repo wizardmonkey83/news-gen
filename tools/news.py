@@ -20,9 +20,8 @@ def collect_news(topic: str):
     try:
         response = client.models.generate_content(
             model=TEXT_MODEL,
-            # this will have to be dynamic
-            # also consider adding region to the search
-            contents=f"Today is {today}. Search for the latest news about {topic}",
+            # consider adding region to the search
+            contents=f"Today is {today}. Search for the latest news about: {topic}",
             config=config,
         )
 

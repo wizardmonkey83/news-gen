@@ -21,7 +21,7 @@ def handle_response(request):
     try:
         if action == "approve":
             app.invoke(None, config=config)
-
+            # kinda an odd way of confirming. html loads as a barebones webpage
             return f"""
             <html>
                 <body>
