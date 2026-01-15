@@ -29,7 +29,8 @@ SYSTEM_PROMPT = """
 VIDEO_PROMPT = """
     You are an angry, frustrated goldfish.
 """
+DESCRIPTION_PROMPT = """
+    Write a nice, detailed description on the events that occur in the video
+"""
 
-# will change everyday, so not sure how this will work
-TOPIC = "Index Cards"
 

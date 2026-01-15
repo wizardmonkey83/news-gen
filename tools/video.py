@@ -2,7 +2,7 @@ import time
 import os
 from google import genai
 from google.cloud import storage
-from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME
+from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, TEXT_MODEL
 import random
 
 client = genai.Client()
@@ -38,8 +38,24 @@ def generate_video(prompt: str, topic: str):
         if os.path.exists(local_path):
             os.remove(local_path)
 
-        return f"gs://{BUCKET_NAME}/{filename}"
+        return {"gs_link": f"gs://{BUCKET_NAME}/{filename}", "filename": filename}
     else:
         # to avoid creating test videos
-        return f"gs://{BUCKET_NAME}/mock_video.mp4"
+        return {"gs_link": f"gs://{BUCKET_NAME}/mock_video.mp4", "filename": filename}
     
+def generate_description(video_url: str, prompt: str, filename: str):
+    storage_client = storage.Client()
+
+    local_path = f"/tmp/{filename}"
+    bucket = storage_client.bucket(BUCKET_NAME)
+    blob = bucket.blob(filename)
+    blob.download_to_filename(local_path)
+    
+    gemini_client = genai.Client()
+
+    file = client.files.upload(file=local_path)
+    response = client.models.generate_content(
+        model=TEXT_MODEL, 
+        contents=[file, prompt]
+    )
+    return response.text

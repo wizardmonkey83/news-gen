@@ -1,7 +1,6 @@
 import functions_framework
 from core.agent import app
 from langchain_core.runnables import RunnableConfig
-from config import TOPIC
 
 @functions_framework.http
 def handle_response(request):
@@ -32,13 +31,13 @@ def handle_response(request):
             """, 200
         
         elif action == "reject":
-            app.invoke({"topic": TOPIC, "is_complete": False}, config=config)
+            app.invoke({"is_complete": False}, config=config)
 
             return f"""
             <html>
                 <body>
                     <h1 style='color:red'>Rejected.</h1>
-                    <p>Cycle reset. Agent is generating a new video for topic: {TOPIC}.</p>
+                    <p>Cycle reset. Agent is generating a new video.</p>
                 </body>
             </html>
             """, 200

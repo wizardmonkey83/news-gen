@@ -1,7 +1,8 @@
-from config import TEXT_MODEL, SYSTEM_PROMPT, TOPIC, VIDEO_PROMPT, LOCAL_DEV
+import config
+from config import TEXT_MODEL, VIDEO_PROMPT, LOCAL_DEV, DESCRIPTION_PROMPT
 from tools.social import post_tweet
 from tools.news import collect_news
-from tools.video import generate_video
+from tools.video import generate_video, generate_description
 from tools.notification import send_request
 from tools.sheets import get_topic
 from state import AgentState
@@ -25,19 +26,24 @@ model = init_chat_model(
 
 def starter(state: AgentState):
     topic = get_topic()
+    config.TOPIC = topic
     return {"topic": topic}
 
 def editor(state: AgentState):
-    result = collect_news(TOPIC)
+    result = collect_news(state["topic"])
     news_summary = result["summary"]
     sources = result["sources"]
     return {"news_summary": news_summary, "sources": sources}
 
 def director(state: AgentState):
     # i think this is sufficient. theres not really a need to make a gemini call here
-    prompt = f"Create a detailed video on this topic: {TOPIC}. Use this for generation guidelines: {VIDEO_PROMPT}"
-    video_url = generate_video(prompt, TOPIC)
-    return {"video_url": video_url}
+    prompt = f"Create a detailed video on this topic: {state["topic"]}. Use this for generation guidelines: {VIDEO_PROMPT}"
+    contents = generate_video(prompt, state["topic"])
+    video_url = contents["gs_link"]
+    filename = contents["filename"]
+
+    post_description = generate_description(video_url, DESCRIPTION_PROMPT, filename)
+    return {"video_url": video_url, "post_description": post_description}
 
 def notifier(state: AgentState, config: RunnableConfig):
     video_url = state["video_url"]
@@ -49,8 +55,7 @@ def notifier(state: AgentState, config: RunnableConfig):
 # once video is approved for publishing
 def publisher(state: AgentState):
     # placeholder
-    # remember to toggle is_complete to true here
-    return None
+    return {"is_complete": True}
 
 graph = StateGraph(AgentState)
 if LOCAL_DEV:
@@ -83,7 +88,8 @@ if __name__ == "__main__":
         # if the agent was paused it will resume where it left off
         app.invoke(None, config=config)
     else:
-        app.invoke({"topic": TOPIC, "is_complete": False}, config=config)
+        # how to pass state?
+        app.invoke({"is_complete": False}, config=config)
 
 
 

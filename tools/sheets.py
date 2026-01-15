@@ -1,4 +1,3 @@
-import config
 import google.auth
 from googleapiclient.discovery import build
 from config import SPREADSHEET_ID
