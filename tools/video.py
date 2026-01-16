@@ -12,13 +12,13 @@ client = genai.Client(
 )
 
 def generate_video(prompt: str, topic: str):
-    # only allowed to write files to the /tmp directory
-    local_path = f"/tmp/{filename}"
-
     if not MOCK_VIDEO:
+        print("!!REAL!! GENERATING VIDEO....")
         # think this is a fine way to create titles in case of re-using topics
         num = random.randint(0, 1000)
         filename = f"{topic}_{num}.mp4"
+
+        local_path = f"/tmp/{filename}"
 
         operation = client.models.generate_videos(
             model=VIDEO_MODEL,
@@ -42,15 +42,17 @@ def generate_video(prompt: str, topic: str):
         # cleanup
         if os.path.exists(local_path):
             os.remove(local_path)
-
+        print("!!REAL!! SUCCESSFULLY CREATED VIDEO")
         return {"gs_link": f"gs://{BUCKET_NAME}/{filename}", "filename": filename}
     else:
         print("GENERATING MOCK VIDEO.....")
+        print("SUCCESSFULLY CREATED MOCK VIDEO")
         filename = "mock_video.mp4"
         return {"gs_link": f"gs://{BUCKET_NAME}/mock_video.mp4", "filename": filename}
     
 def generate_description(video_url: str, prompt: str, filename: str):
     if not MOCK_VIDEO:
+        print("!!REAL!! GENERATING POST DESCRIPTION....")
         storage_client = storage.Client(project=PROJECT_ID)
 
         local_path = f"/tmp/{filename}"
@@ -64,7 +66,9 @@ def generate_description(video_url: str, prompt: str, filename: str):
             contents=[file, prompt]
         )
         client.files.delete(name=file.name)
+        print("!!REAL!! POST DESCRIPTION SUCCESSFULLY CREATED")
         return response.text
     else:
         print("GENERATING MOCK POST DESCRIPTION....")
+        print("SUCCESSFULLY CREATED MOCK POST DESCRIPTION")
         return "Wow, this video is super awesome and you should totally watch it!"

@@ -31,7 +31,9 @@ def handle_response(request):
             """, 200
         
         elif action == "reject":
-            app.invoke({"is_complete": False}, config=config)
+            snapshot = app.get_state(config)
+            previous_topic = snapshot.values.get("topic")
+            app.invoke({"topic": previous_topic, "is_complete": False}, config=config)
 
             return f"""
             <html>

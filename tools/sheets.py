@@ -7,7 +7,7 @@ def get_topic():
     creds, _ = google.auth.default()
     service = build("sheets", "v4", credentials=creds)
 
-    read_range = "AGW Studios News Queue!A:B"
+    read_range = "A:B"
     result = service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID, range=read_range
     ).execute()
@@ -18,13 +18,13 @@ def get_topic():
         # shouldn't happen
         return None
 
-    # add a "In progress" check to tell the agent to sleep
+    # add a "In progress" check to tell the agent to sleep. 1-indexed
     for i, row in enumerate(values, start=1):
         if len(row) < 2:
             continue
         topic, status = row[0], row[1]
         if status.strip().lower() == "pending":
-            update_range = f"AGW Studios News Queue!B{i}"
+            update_range = f"B{i}"
 
             body = {
                 "values": [["In Progress"]]
@@ -36,7 +36,7 @@ def get_topic():
                 valueInputOption="RAW",
                 body=body
             ).execute()
-            print("RETRIEVING TOPIC....")
+            print("TOPIC COLLECTED....")
             return topic
     return None
     # assumes there is a topic 

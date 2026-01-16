@@ -12,6 +12,7 @@ client = genai.Client(
 
 def collect_news(topic: str):
     if not MOCK_NEWS:
+        print("!!REAL!! GENERATING NEWS SUMMARY....")
         today = date.today()
 
         grounding_tool = types.Tool(
@@ -53,17 +54,20 @@ def collect_news(topic: str):
                     "summary": "No news found.",
                     "sources": {}
                 }
+                print("!!REAL!! NO NEWS FOUND. SUMMARY GENERATED.")
                 return contents
                 
             contents = {
                 "summary": summary,
                 "sources": dict(sources),
             }
-
+            print("!!REAL!! SUCCESSFULLY CREATED SUMMARY")
             return contents
         # in case of an API issue
         except Exception as e:
+            print(f"!!REAL!! ERROR GENERATING SUMMARY. ERROR: {e}")
             return {"summary": "Error fetching news.", "sources": {}}
     else:
         print("GENERATING MOCK NEWS SUMMARY....")
+        print("SUCCESSFULLY CREATED MOCK NEWS SUMMARY")
         return {"summary": "Test news summary.", "sources": {}}

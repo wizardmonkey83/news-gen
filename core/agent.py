@@ -18,6 +18,7 @@ from google import genai
 from datetime import date
 
 def starter(state: AgentState):
+    print("WAKING UP....")
     topic = get_topic()
     return {"topic": topic}
 
@@ -53,7 +54,7 @@ def publisher(state: AgentState):
 graph = StateGraph(AgentState)
 
 client = firestore.Client(project=PROJECT_ID)
-memory = FirestoreSaver(client=client)
+memory = FirestoreSaver(project_id=PROJECT_ID)
 # thread_id is the slot the state is saved to
 config = {"configurable": {"thread_id": f"{date.today()}"}}
 
