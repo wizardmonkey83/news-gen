@@ -36,7 +36,7 @@ def get_topic():
                 valueInputOption="RAW",
                 body=body
             ).execute()
-
+            print("RETRIEVING TOPIC....")
             return topic
     return None
     # assumes there is a topic 

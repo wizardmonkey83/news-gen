@@ -2,10 +2,14 @@ import time
 import os
 from google import genai
 from google.cloud import storage
-from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, TEXT_MODEL
+from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, TEXT_MODEL, PROJECT_ID, LOCATION
 import random
 
-client = genai.Client()
+client = genai.Client(
+    vertexai=True,
+    project=PROJECT_ID,
+    location=LOCATION
+)
 
 def generate_video(prompt: str, topic: str):
     # only allowed to write files to the /tmp directory
@@ -29,7 +33,7 @@ def generate_video(prompt: str, topic: str):
         # vertex requires videos to be saved to a local point on the device meaning a gs url cant be saved. saving a temp file bypasses this restraint.
         generated_video.video.save(local_path)
 
-        storage_client = storage.Client()
+        storage_client = storage.Client(project=PROJECT_ID)
         bucket = storage_client.bucket(BUCKET_NAME)
         # blob is just a name for file
         blob = bucket.blob(filename)
@@ -47,21 +51,19 @@ def generate_video(prompt: str, topic: str):
     
 def generate_description(video_url: str, prompt: str, filename: str):
     if not MOCK_VIDEO:
-        storage_client = storage.Client()
+        storage_client = storage.Client(project=PROJECT_ID)
 
         local_path = f"/tmp/{filename}"
         bucket = storage_client.bucket(BUCKET_NAME)
         blob = bucket.blob(filename)
         blob.download_to_filename(local_path)
-        
-        gemini_client = genai.Client()
 
-        file = gemini_client.files.upload(file=local_path)
-        response = gemini_client.models.generate_content(
+        file = client.files.upload(file=local_path)
+        response = client.models.generate_content(
             model=TEXT_MODEL, 
             contents=[file, prompt]
         )
-        gemini_client.files.delete(name=file.name)
+        client.files.delete(name=file.name)
         return response.text
     else:
         print("GENERATING MOCK POST DESCRIPTION....")

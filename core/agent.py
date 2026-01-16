@@ -1,10 +1,10 @@
-from config import TEXT_MODEL, VIDEO_PROMPT, LOCAL_DEV, DESCRIPTION_PROMPT
+from config import VIDEO_PROMPT, DESCRIPTION_PROMPT, PROJECT_ID
 from tools.social import post_tweet
 from tools.news import collect_news
 from tools.video import generate_video, generate_description
 from tools.notification import send_request
 from tools.sheets import get_topic
-from state import AgentState
+from core.state import AgentState
 
 from langchain.tools import tool
 from langchain.chat_models import init_chat_model
@@ -47,11 +47,12 @@ def notifier(state: AgentState, config: RunnableConfig):
 # once video is approved for publishing
 def publisher(state: AgentState):
     # placeholder
+    print("PUBLISHING MOCK TWEET....")
     return {"is_complete": True}
 
 graph = StateGraph(AgentState)
 
-client = firestore.Client()
+client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(client=client)
 # thread_id is the slot the state is saved to
 config = {"configurable": {"thread_id": f"{date.today()}"}}

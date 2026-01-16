@@ -2,9 +2,13 @@ from google import genai
 from google.genai import types
 from collections import defaultdict
 from datetime import date
-from config import TEXT_MODEL, MOCK_NEWS
+from config import TEXT_MODEL, MOCK_NEWS, PROJECT_ID, LOCATION
 
-client = genai.Client()
+client = genai.Client(
+    vertexai=True,
+    project=PROJECT_ID,
+    location=LOCATION
+)
 
 def collect_news(topic: str):
     if not MOCK_NEWS:
