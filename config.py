@@ -17,8 +17,8 @@ TEXT_MODEL = "gemini-2.5-pro"
 VIDEO_MODEL = "veo-3.1-fast-generate-preview"
 
 # for testing theres no need to generate videos or post to socials
-MOCK_VIDEO = True
-MOCK_NEWS = True
+MOCK_VIDEO = False
+MOCK_NEWS = False
 MOCK_SOCIAL = True
 LOCAL_DEV = True
 
@@ -28,7 +28,8 @@ SYSTEM_PROMPT = """
     You are an XBOX controller.
 """
 VIDEO_PROMPT = """
-    You are an angry, frustrated goldfish.
+    Create a realistic, vivid video based on the news topic in tandem with the news sources provided. 
+    The video should take place within the Tintin (belgian detective) universe.
 """
 DESCRIPTION_PROMPT = """
     Write a nice, detailed description on the events that occur in the video

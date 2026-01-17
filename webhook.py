@@ -20,6 +20,7 @@ def handle_response(request):
     try:
         if action == "approve":
             app.invoke(None, config=config)
+            print("WAKING UP AGENT... GETTING READY TO PUBLISH")
             # kinda an odd way of confirming. html loads as a barebones webpage
             return f"""
             <html>
@@ -35,6 +36,7 @@ def handle_response(request):
             previous_topic = snapshot.values.get("topic")
             app.invoke({"topic": previous_topic, "is_complete": False}, config=config)
 
+            print("VIDEO REJECTED... RESTARTING AGENT")
             return f"""
             <html>
                 <body>

@@ -30,7 +30,11 @@ def editor(state: AgentState):
 
 def director(state: AgentState):
     # i think this is sufficient. theres not really a need to make a gemini call here
-    prompt = f"Create a detailed video on this topic: {state["topic"]}. Use this for generation guidelines: {VIDEO_PROMPT}"
+    prompt = f"""
+        Create a detailed video on this topic: {state["topic"]}. This is a summary of news gathered on the topic, use it for context: {state["news_summary"]} 
+        Use this for generation guidelines: {VIDEO_PROMPT}
+    """
+    
     contents = generate_video(prompt, state["topic"])
     video_url = contents["gs_link"]
     filename = contents["filename"]
@@ -56,7 +60,7 @@ graph = StateGraph(AgentState)
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
 # thread_id is the slot the state is saved to
-config = {"configurable": {"thread_id": f"{date.today()}"}}
+config = {"configurable": {"thread_id": f"{date.today()}+test2335442"}}
 
 graph.add_node("starter", starter)
 graph.add_node("editor", editor)
