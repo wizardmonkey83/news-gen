@@ -3,7 +3,7 @@ from tools.social import post_tweet
 from tools.news import collect_news
 from tools.video import generate_video, generate_description
 from tools.notification import send_request
-from tools.sheets import get_topic
+from tools.sheets import get_topic, mark_complete
 from core.state import AgentState
 
 from langchain.tools import tool
@@ -36,11 +36,12 @@ def director(state: AgentState):
     """
     
     contents = generate_video(prompt, state["topic"])
-    video_url = contents["gs_link"]
+    gs_link = contents["gs_link"]
+    video_url = contents["video_url"]
     filename = contents["filename"]
 
-    post_description = generate_description(video_url, DESCRIPTION_PROMPT, filename)
-    return {"video_url": video_url, "post_description": post_description}
+    post_description = generate_description(gs_link, DESCRIPTION_PROMPT, filename)
+    return {"video_url": video_url, "gs_link": gs_link, "post_description": post_description}
 
 def notifier(state: AgentState, config: RunnableConfig):
     video_url = state["video_url"]
@@ -51,7 +52,8 @@ def notifier(state: AgentState, config: RunnableConfig):
 
 # once video is approved for publishing
 def publisher(state: AgentState):
-    # placeholder
+    # placeholder for post_tweet
+    mark_complete()
     print("PUBLISHING MOCK TWEET....")
     return {"is_complete": True}
 
@@ -60,7 +62,7 @@ graph = StateGraph(AgentState)
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
 # thread_id is the slot the state is saved to
-config = {"configurable": {"thread_id": f"{date.today()}+test2335442"}}
+config = {"configurable": {"thread_id": f"{date.today()}+test939191"}}
 
 graph.add_node("starter", starter)
 graph.add_node("editor", editor)
