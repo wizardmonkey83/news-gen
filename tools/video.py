@@ -2,6 +2,7 @@ import time
 import os
 import tempfile
 from google import genai
+from google.genai import types
 from google.cloud import storage
 from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, TEXT_MODEL, PROJECT_ID, LOCATION, LOCAL_DEV
 import random
@@ -29,6 +30,7 @@ def generate_signed_url(bucket_name, blob_name):
 def generate_video(prompt: str, topic: str):
     if not MOCK_VIDEO:
         print("!!REAL!! GENERATING VIDEO....")
+
         # think this is a fine way to create titles in case of re-using topics
         num = random.randint(0, 1000)
         filename = f"{topic}_{num}.mp4"
@@ -59,37 +61,39 @@ def generate_video(prompt: str, topic: str):
         # cleanup
         if os.path.exists(local_path):
             os.remove(local_path)
+
         print("!!REAL!! SUCCESSFULLY CREATED VIDEO")
-        return {"video": f"gs://{BUCKET_NAME}/{filename}", "filename": filename}
+
+        signed_url = generate_signed_url(BUCKET_NAME, filename)
+        return {
+            "video_url": signed_url, 
+            "gs_link": f"gs://{BUCKET_NAME}/{filename}", 
+            "filename": filename
+        }
     else:
         print("GENERATING MOCK VIDEO.....")
         print("SUCCESSFULLY CREATED MOCK VIDEO")
+
         filename = "mock_video.mp4"
-        return {"gs_link": f"gs://{BUCKET_NAME}/mock_video.mp4", "filename": filename}
+        return {
+            "video_url": "no/url/for/now",
+            "gs_link": f"gs://{BUCKET_NAME}/mock_video.mp4", 
+            "filename": filename
+        }
     
-def generate_description(video_url: str, prompt: str, filename: str):
+def generate_description(gs_link: str, prompt: str, filename: str):
     if not MOCK_VIDEO:
         print("!!REAL!! GENERATING POST DESCRIPTION....")
-        storage_client = storage.Client(project=PROJECT_ID)
 
-        if not LOCAL_DEV:
-            local_path = f"/tmp/{filename}"
-        else:
-            local_path = os.path.join(tempfile.gettempdir(), filename)
-
-        bucket = storage_client.bucket(BUCKET_NAME)
-        blob = bucket.blob(filename)
-        blob.download_to_filename(local_path)
-
-        file = client.files.upload(file=local_path)
-        response = client.models.generate_content(
-            model=TEXT_MODEL, 
-            contents=[file, prompt]
+        video = types.Part.from_uri(
+            file_uri=gs_link,
+            mime_type="video/mp4"
         )
 
-        client.files.delete(name=file.name)
-        if os.path.exists(local_path):
-            os.remove(local_path)
+        response = client.models.generate_content(
+            model=TEXT_MODEL, 
+            contents=[video, prompt]
+        )
 
         print("!!REAL!! POST DESCRIPTION SUCCESSFULLY CREATED")
         return response.text

@@ -36,11 +36,13 @@ def director(state: AgentState):
     """
     
     contents = generate_video(prompt, state["topic"])
+
     gs_link = contents["gs_link"]
     video_url = contents["video_url"]
     filename = contents["filename"]
 
     post_description = generate_description(gs_link, DESCRIPTION_PROMPT, filename)
+
     return {"video_url": video_url, "gs_link": gs_link, "post_description": post_description}
 
 def notifier(state: AgentState, config: RunnableConfig):
