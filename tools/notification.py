@@ -15,8 +15,8 @@ def send_request(video_url: str, post_description: str, thread_id: str):
         <html>
             <body>
                 <h1>Click the link to approve and publish the video with associated content.</h1>
-                <p>Generated Video: {video_url}</p>
-                <p>Post Description: {post_description}</p>
+                <p><strong>Generated Video:</strong> {video_url}</p>
+                <p><strong>Post Description:<strong/> {post_description}</p>
                 <p style='color:red'>PLEASE DO NOT DOUBLE CLICK THE APPROVAL/REJECTION LINK. PLEASE DO NOT DOUBLE CLICK THE APPROVAL/REJECTION LINK.</p>
                 <p>
                     <a href="{APPROVAL_URL}?action=approve&thread_id={thread_id}">[APPROVE & PUBLISH]</a>

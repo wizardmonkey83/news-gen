@@ -60,11 +60,11 @@ def store_sources(sources: dict):
         status = row[1]
         if status.strip().lower() == "in progress":
             sources_cell = f"D{i}"
-            values = ""
+            formatted_sources = ""
             for title, url in sources.items():
-                values += f"({title}: {url}), "
+                formatted_sources += f"({title}: {url}), "
             body = {
-                "values": [values]
+                "values": [[formatted_sources]]
             }
 
             service.spreadsheets().values().update(
