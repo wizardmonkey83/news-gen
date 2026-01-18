@@ -81,7 +81,7 @@ def generate_video(prompt: str, topic: str):
             "filename": filename
         }
     
-def generate_description(gs_link: str, prompt: str, filename: str):
+def generate_description(gs_link: str, prompt: str):
     if not MOCK_VIDEO:
         print("!!REAL!! GENERATING POST DESCRIPTION....")
 

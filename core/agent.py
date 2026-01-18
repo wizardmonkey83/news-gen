@@ -36,14 +36,15 @@ def director(state: AgentState):
     """
     
     contents = generate_video(prompt, state["topic"])
-
     gs_link = contents["gs_link"]
     video_url = contents["video_url"]
-    filename = contents["filename"]
 
-    post_description = generate_description(gs_link, DESCRIPTION_PROMPT, filename)
+    return {"video_url": video_url, "gs_link": gs_link}
 
-    return {"video_url": video_url, "gs_link": gs_link, "post_description": post_description}
+def writer(state: AgentState):
+    gs_link = state["gs_link"]
+    post_description = generate_description(gs_link, DESCRIPTION_PROMPT)
+    return {"post_description": post_description}
 
 def notifier(state: AgentState, config: RunnableConfig):
     video_url = state["video_url"]
@@ -69,13 +70,15 @@ config = {"configurable": {"thread_id": f"{date.today()}+test939191"}}
 graph.add_node("starter", starter)
 graph.add_node("editor", editor)
 graph.add_node("director", director)
+graph.add_node("writer", writer)
 graph.add_node("notifier", notifier)
 graph.add_node("publisher", publisher)
 
 graph.add_edge(START, "starter")
 graph.add_edge("starter", "editor")
 graph.add_edge("editor", "director")
-graph.add_edge("director", "notifier")
+graph.add_edge("director", "writer")
+graph.add_edge("writer", "notifier")
 graph.add_edge("notifier", "publisher")
 graph.add_edge("publisher", END)
 
