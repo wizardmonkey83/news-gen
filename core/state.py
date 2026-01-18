@@ -10,7 +10,7 @@ class AgentState(TypedDict):
     # ingestion
     news_summary: Optional[str]
     # i think dict is correct
-    source_urls: dict[str]
+    source: dict[str]
 
     # creation
     script: Optional[str]

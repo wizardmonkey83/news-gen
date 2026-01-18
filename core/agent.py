@@ -3,7 +3,7 @@ from tools.social import post_tweet
 from tools.news import collect_news
 from tools.video import generate_video, generate_description
 from tools.notification import send_request
-from tools.sheets import get_topic, mark_complete
+from tools.sheets import get_topic, mark_complete, store_sources
 from core.state import AgentState
 
 from langchain.tools import tool
@@ -26,7 +26,13 @@ def editor(state: AgentState):
     result = collect_news(state["topic"])
     news_summary = result["summary"]
     sources = result["sources"]
+
     return {"news_summary": news_summary, "sources": sources}
+
+def archiver(state: AgentState):
+    sources = state["sources"]
+    store_sources(sources)
+    # may want to include an interrupt here to allow source editing
 
 def director(state: AgentState):
     # i think this is sufficient. theres not really a need to make a gemini call here
@@ -50,37 +56,42 @@ def notifier(state: AgentState, config: RunnableConfig):
     video_url = state["video_url"]
     post_description = state["post_description"]
     thread_id = config["configurable"].get("thread_id")
-    # not super sure how to call this
     send_request(video_url, post_description, thread_id)
 
 # once video is approved for publishing
 def publisher(state: AgentState):
     # placeholder for post_tweet
-    mark_complete()
     print("PUBLISHING MOCK TWEET....")
     return {"is_complete": True}
+
+def cleaner(state: AgentState):
+    mark_complete()
 
 graph = StateGraph(AgentState)
 
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
 # thread_id is the slot the state is saved to
-config = {"configurable": {"thread_id": f"{date.today()}+test939191"}}
+config = {"configurable": {"thread_id": f"{date.today()}+test12319653"}}
 
 graph.add_node("starter", starter)
 graph.add_node("editor", editor)
+graph.add_node("archiver", archiver)
 graph.add_node("director", director)
 graph.add_node("writer", writer)
 graph.add_node("notifier", notifier)
 graph.add_node("publisher", publisher)
+graph.add_node("cleaner", cleaner)
 
 graph.add_edge(START, "starter")
 graph.add_edge("starter", "editor")
-graph.add_edge("editor", "director")
+graph.add_edge("editor", "archiver")
+graph.add_edge("archiver", "director")
 graph.add_edge("director", "writer")
 graph.add_edge("writer", "notifier")
 graph.add_edge("notifier", "publisher")
-graph.add_edge("publisher", END)
+graph.add_edge("publisher", "cleaner")
+graph.add_edge("cleaner", END)
 
 # run command
 app = graph.compile(interrupt_before=["publisher"], checkpointer=memory)

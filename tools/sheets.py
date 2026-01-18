@@ -2,7 +2,6 @@ import google.auth
 from googleapiclient.discovery import build
 from config import SPREADSHEET_ID
 
-
 def get_topic():
     creds, _ = google.auth.default()
     service = build("sheets", "v4", credentials=creds)
@@ -41,6 +40,41 @@ def get_topic():
     return None
     # assumes there is a topic 
     
+def store_sources(sources: dict):
+    creds, _ = google.auth.default()
+    service = build("sheets", "v4", credentials=creds)
+    # i think this needs to be a-d, maybe not
+    read_range = "A:D"
+    result = service.spreadsheets().values().get(
+        spreadsheetId=SPREADSHEET_ID, range=read_range
+    ).execute()
+
+    values = result.get("values", [])
+    
+    if not values:
+        return None
+    
+    for i, row in enumerate(values, start=1):
+        if len(row) < 2:
+            continue
+        status = row[1]
+        if status.strip().lower() == "in progress":
+            sources_cell = f"D{i}"
+            values = ""
+            for title, url in sources.items():
+                values += f"({title}: {url}), "
+            body = {
+                "values": [values]
+            }
+
+            service.spreadsheets().values().update(
+                spreadsheetId=SPREADSHEET_ID,
+                range=sources_cell,
+                valueInputOption="RAW",
+                body=body
+            ).execute()
+            return True 
+    return None
 
 def mark_complete():
     creds, _ = google.auth.default()
@@ -59,7 +93,7 @@ def mark_complete():
     for i, row in enumerate(values, start=1):
         if len(row) < 2:
             continue
-        topic, status = row[0], row[1]
+        status = row[1]
         if status.strip().lower() == "in progress":
             update_range = f"B{i}"
 
