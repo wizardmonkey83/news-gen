@@ -11,6 +11,8 @@ APPROVAL_URL = config("APPROVAL_URL")
 
 SPREADSHEET_ID = config("SPREADSHEET_ID")
 
+BSKY_USERNAME = config("BSKY_USERNAME")
+BSKY_PASSWORD = config("BSKY_PASSWORD")
 
 # for testing purposes its a bit cheaper than 3.0
 TEXT_MODEL = "gemini-2.5-pro"
