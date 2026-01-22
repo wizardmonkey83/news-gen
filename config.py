@@ -10,6 +10,7 @@ RECIPIENT_EMAIL = config("RECIPIENT_EMAIL")
 APPROVAL_URL = config("APPROVAL_URL")
 
 SPREADSHEET_ID = config("SPREADSHEET_ID")
+FOLDER_ID = config("FOLDER_ID")
 
 BSKY_USERNAME = config("BSKY_USERNAME")
 BSKY_PASSWORD = config("BSKY_PASSWORD")
@@ -89,7 +90,7 @@ DESCRIPTION_PROMPT = """
     End with a cynical or robotic observation about the news.
 
     -- EXAMPLE OUTPUTS -- 
-    
+
     "Human productivity is down 40% due to the new social algorithm. Excellent work."
     "New hardware detected. Specs: Adequate. Price: Illogical. Full report attached."
     "Security patch deployed for the internet. Please restart your modems and your expectations."
