@@ -10,6 +10,7 @@ def post_to_bsky(description: str, filename: str):
     if not MOCK_SOCIAL:
         print("!!REAL!! UPLOADING VIDEO....")
 
+        # creates a temp file, forces the format to be .mp4 and forces manual deletion in order to access it after the "with" statement ends
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_video:
             local_video_path = temp_video.name
 
@@ -84,7 +85,7 @@ def post_to_bsky(description: str, filename: str):
             )
 
             print("!!REAL!! POST PUBLISHED....")
-
+        # the more you know....
         finally:
             if os.path.exists(local_video_path):
                 os.remove(local_video_path)
