@@ -1,5 +1,5 @@
 from config import VIDEO_PROMPT, DESCRIPTION_PROMPT, PROJECT_ID
-from tools.social import post_tweet
+from tools.social import post_to_bsky
 from tools.news import collect_news
 from tools.video import generate_video, generate_description
 from tools.notification import send_request
@@ -60,8 +60,7 @@ def notifier(state: AgentState, config: RunnableConfig):
 
 # once video is approved for publishing
 def publisher(state: AgentState):
-    # placeholder for post_tweet
-    print("PUBLISHING MOCK TWEET....")
+    post_to_bsky(state["post_description"], state["video_url"])
     return {"is_complete": True}
 
 def cleaner(state: AgentState):
