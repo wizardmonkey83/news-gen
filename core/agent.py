@@ -44,8 +44,9 @@ def director(state: AgentState):
     contents = generate_video(prompt, state["topic"])
     gs_link = contents["gs_link"]
     video_url = contents["video_url"]
+    filename = contents["filename"]
 
-    return {"video_url": video_url, "gs_link": gs_link}
+    return {"video_url": video_url, "gs_link": gs_link, "filename": filename}
 
 def writer(state: AgentState):
     gs_link = state["gs_link"]
@@ -60,7 +61,7 @@ def notifier(state: AgentState, config: RunnableConfig):
 
 # once video is approved for publishing
 def publisher(state: AgentState):
-    post_to_bsky(state["post_description"], state["video_url"])
+    post_to_bsky(state["post_description"], state["filename"])
     return {"is_complete": True}
 
 def cleaner(state: AgentState):
