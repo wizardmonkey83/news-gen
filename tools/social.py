@@ -15,6 +15,11 @@ def post_to_bsky(description: str, filename: str):
             local_video_path = temp_video.name
 
         try:
+            storage_client = storage.Client(project=PROJECT_ID)
+            bucket = storage_client.bucket(BUCKET_NAME)
+            blob = bucket.blob(filename)
+            blob.download_to_filename(local_video_path)
+
             client = Client()
             client.login(BSKY_USERNAME, BSKY_PASSWORD)
 

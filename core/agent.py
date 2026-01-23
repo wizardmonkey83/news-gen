@@ -4,6 +4,7 @@ from tools.news import collect_news
 from tools.video import generate_video, generate_description
 from tools.notification import send_request
 from tools.sheets import get_topic, mark_complete, store_sources
+from tools.storage import create_folder, video_to_drive, desc_to_drive
 from core.state import AgentState
 
 from langchain.tools import tool
@@ -17,11 +18,13 @@ from langgraph.graph import StateGraph, START, END
 from google import genai
 from datetime import date
 
+# gets topic from google sheet
 def starter(state: AgentState):
     print("WAKING UP....")
     topic = get_topic()
     return {"topic": topic}
 
+# collects news sources and creates a summary
 def editor(state: AgentState):
     result = collect_news(state["topic"])
     news_summary = result["summary"]
@@ -29,11 +32,13 @@ def editor(state: AgentState):
 
     return {"news_summary": news_summary, "sources": sources}
 
+# saves sources to google sheets
 def archiver(state: AgentState):
     sources = state["sources"]
     store_sources(sources)
     # may want to include an interrupt here to allow source editing
 
+# creates video
 def director(state: AgentState):
     # i think this is sufficient. theres not really a need to make a gemini call here
     prompt = f"""
@@ -48,11 +53,19 @@ def director(state: AgentState):
 
     return {"video_url": video_url, "gs_link": gs_link, "filename": filename}
 
+# creates video description
 def writer(state: AgentState):
     gs_link = state["gs_link"]
     post_description = generate_description(gs_link, DESCRIPTION_PROMPT)
     return {"post_description": post_description}
 
+# saves video and post description to newly created google drive folder
+def saver(state: AgentState):
+    folder_id = create_folder(state["topic"])
+    video_to_drive(state["filename"], folder_id)
+    desc_to_drive(state["post_description"], folder_id)
+
+# sends approve/reject email 
 def notifier(state: AgentState, config: RunnableConfig):
     video_url = state["video_url"]
     post_description = state["post_description"]
@@ -64,6 +77,7 @@ def publisher(state: AgentState):
     post_to_bsky(state["post_description"], state["filename"])
     return {"is_complete": True}
 
+# marks the topic in the google sheet as complete
 def cleaner(state: AgentState):
     mark_complete()
 
@@ -72,13 +86,14 @@ graph = StateGraph(AgentState)
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
 # thread_id is the slot the state is saved to
-config = {"configurable": {"thread_id": f"{date.today()}+test34563218"}}
+config = {"configurable": {"thread_id": f"{date.today()}+test20301923"}}
 
 graph.add_node("starter", starter)
 graph.add_node("editor", editor)
 graph.add_node("archiver", archiver)
 graph.add_node("director", director)
 graph.add_node("writer", writer)
+graph.add_node("saver", saver)
 graph.add_node("notifier", notifier)
 graph.add_node("publisher", publisher)
 graph.add_node("cleaner", cleaner)
@@ -88,7 +103,8 @@ graph.add_edge("starter", "editor")
 graph.add_edge("editor", "archiver")
 graph.add_edge("archiver", "director")
 graph.add_edge("director", "writer")
-graph.add_edge("writer", "notifier")
+graph.add_edge("writer", "saver")
+graph.add_edge("saver", "notifier")
 graph.add_edge("notifier", "publisher")
 graph.add_edge("publisher", "cleaner")
 graph.add_edge("cleaner", END)

@@ -21,6 +21,8 @@ class AgentState(TypedDict):
     gs_link: Optional[str]
     post_description: Optional[str]
 
+    folder_id: Optional[str]
+
     # status tracking
     is_complete: bool
     error: Optional[str]
