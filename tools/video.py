@@ -33,6 +33,7 @@ def generate_video(prompt: str, topic: str):
 
         # think this is a fine way to create titles in case of re-using topics
         num = random.randint(0, 1000)
+        # change num to date in production
         filename = f"{topic}_{num}.mp4"
         if not LOCAL_DEV:
             local_path = f"/tmp/{filename}"

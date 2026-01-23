@@ -8,6 +8,7 @@ from googleapiclient.http import MediaFileUpload
 from googleapiclient.errors import HttpError
 from config import FOLDER_ID, PROJECT_ID, BUCKET_NAME
 
+"""
 def create_folder(topic: str):
     creds, _ = google.auth.default()
 
@@ -15,7 +16,7 @@ def create_folder(topic: str):
         service = build("drive", "v3", credentials=creds)
 
         page_token = None
-        # i shouldn't need the while loop since there should only be one response
+        # i shouldn't need the while loop since there should only be one response but docs want it...
         while True:
             response = (
                 service.files().list(
@@ -52,6 +53,7 @@ def video_to_drive(filename: str, folder_id: str):
     with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_video:
         local_video_path = temp_video.name
     
+    media = None
     try:
         storage_client = storage.Client(project=PROJECT_ID)
         bucket = storage_client.bucket(BUCKET_NAME)
@@ -72,12 +74,18 @@ def video_to_drive(filename: str, folder_id: str):
         )
         return file.get("id")
     finally:
+        # lets the file get deleted if the script crashes during upload
+        if media:
+            del media
+
         if os.path.exists(local_video_path):
             os.remove(local_video_path)
+"""
 
-def desc_to_drive(description: str, folder_id: str):
+def desc_to_bucket(description: str, folder_id: str):
     creds, _ = google.auth.default()
-        
+    
+    media = None
     try:
         with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as temp_desc:
             local_desc_path = temp_desc.name
@@ -97,5 +105,8 @@ def desc_to_drive(description: str, folder_id: str):
         )
         return file.get("id")
     finally:
+        if media:
+            del media
+
         if os.path.exists(local_desc_path):
             os.remove(local_desc_path)
