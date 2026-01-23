@@ -13,6 +13,28 @@ def create_folder(topic: str):
 
     try:
         service = build("drive", "v3", credentials=creds)
+
+        page_token = None
+        # i shouldn't need the while loop since there should only be one response
+        while True:
+            response = (
+                service.files().list(
+                    q=f"mimeType='application/vnd.google-apps.folder' and fullText='{topic} -- {date.today()}'",
+                    spaces="drive",
+                    fields="nextPageToken, files(id, name)",
+                    pageToken=page_token,
+                )
+                .execute()
+            )
+            # file found
+            if response:
+                for file in response.get("files", []):
+                    if file.get("name") == f"{topic} -- {date.today()}":
+                        return file.get("id")
+            else:
+                break
+
+
         file_metadata = {
             "name": f"{topic} -- {date.today()}",
             "parents": [FOLDER_ID],
