@@ -38,7 +38,6 @@ def generate_video(prompt: str, topic: str):
             local_path = f"/tmp/{filename}"
         else:
             local_path = os.path.join(tempfile.gettempdir(), filename)
-
         operation = client.models.generate_videos(
             model=VIDEO_MODEL,
             prompt=prompt,

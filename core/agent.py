@@ -86,7 +86,7 @@ graph = StateGraph(AgentState)
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
 # thread_id is the slot the state is saved to
-config = {"configurable": {"thread_id": f"{date.today()}+test20301923"}}
+config = {"configurable": {"thread_id": f"{date.today()}+test20482811"}}
 
 graph.add_node("starter", starter)
 graph.add_node("editor", editor)
