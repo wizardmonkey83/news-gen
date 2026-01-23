@@ -6,7 +6,7 @@ import os
 import requests
 from config import MOCK_SOCIAL, BSKY_USERNAME, BSKY_PASSWORD, PROJECT_ID, BUCKET_NAME
 
-def post_to_bsky(description: str, filename: str):
+def post_to_bsky(description: str, storage_prefix: str):
     if not MOCK_SOCIAL:
         print("!!REAL!! UPLOADING VIDEO....")
 
@@ -17,7 +17,7 @@ def post_to_bsky(description: str, filename: str):
         try:
             storage_client = storage.Client(project=PROJECT_ID)
             bucket = storage_client.bucket(BUCKET_NAME)
-            blob = bucket.blob(filename)
+            blob = bucket.blob(f"{storage_prefix}/video.mp4")
             blob.download_to_filename(local_video_path)
 
             client = Client()
@@ -38,7 +38,7 @@ def post_to_bsky(description: str, filename: str):
 
             params = {
                 "did": client.me.did,
-                "name": os.path.basename(filename)
+                "name": os.path.basename("video.mp4")
             }
             headers = {
                 "Authorization": f"Bearer {token}",

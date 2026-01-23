@@ -27,18 +27,16 @@ def generate_signed_url(bucket_name, blob_name):
     )
     return url
 
-def generate_video(prompt: str, topic: str):
+def generate_video(prompt: str, storage_prefix: str):
     if not MOCK_VIDEO:
         print("!!REAL!! GENERATING VIDEO....")
 
-        # think this is a fine way to create titles in case of re-using topics
-        num = random.randint(0, 1000)
-        # change num to date in production
-        filename = f"{topic}_{num}.mp4"
+        filename = "video.mp4"
         if not LOCAL_DEV:
             local_path = f"/tmp/{filename}"
         else:
             local_path = os.path.join(tempfile.gettempdir(), filename)
+
         operation = client.models.generate_videos(
             model=VIDEO_MODEL,
             prompt=prompt,
@@ -57,9 +55,10 @@ def generate_video(prompt: str, topic: str):
         generated_video.video.save(local_path)
 
         storage_client = storage.Client(project=PROJECT_ID)
+        storage_path = f"{storage_prefix}/{filename}"
         bucket = storage_client.bucket(BUCKET_NAME)
-        # blob is just a name for file
-        blob = bucket.blob(filename)
+        # blob is just another name for file
+        blob = bucket.blob(storage_path)
         blob.upload_from_filename(local_path)
 
         # cleanup
@@ -68,11 +67,10 @@ def generate_video(prompt: str, topic: str):
 
         print("!!REAL!! SUCCESSFULLY CREATED VIDEO")
 
-        signed_url = generate_signed_url(BUCKET_NAME, filename)
+        signed_url = generate_signed_url(BUCKET_NAME, storage_path)
         return {
             "video_url": signed_url, 
-            "gs_link": f"gs://{BUCKET_NAME}/{filename}", 
-            "filename": filename
+            "gs_link": f"gs://{BUCKET_NAME}/{storage_path}", 
         }
     else:
         print("GENERATING MOCK VIDEO.....")
@@ -82,7 +80,6 @@ def generate_video(prompt: str, topic: str):
         return {
             "video_url": "no/url/for/now",
             "gs_link": f"gs://{BUCKET_NAME}/mock_video.mp4", 
-            "filename": filename
         }
     
 def generate_description(gs_link: str, prompt: str):

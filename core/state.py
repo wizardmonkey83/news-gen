@@ -15,13 +15,15 @@ class AgentState(TypedDict):
     # creation
     script: Optional[str]
     video_prompt: Optional[str]
+
+    # storing video, desc in bucket
+    storage_prefix: Optional[str]
     # link to the final video
     video_url: Optional[str]
     filename: Optional[str]
     gs_link: Optional[str]
-    post_description: Optional[str]
 
-    folder_id: Optional[str]
+    post_description: Optional[str]
 
     # status tracking
     is_complete: bool

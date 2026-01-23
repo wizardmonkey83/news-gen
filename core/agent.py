@@ -1,10 +1,10 @@
-from config import VIDEO_PROMPT, DESCRIPTION_PROMPT, PROJECT_ID
+from config import VIDEO_PROMPT, DESCRIPTION_PROMPT, PROJECT_ID, LOCAL_DEV
 from tools.social import post_to_bsky
 from tools.news import collect_news
 from tools.video import generate_video, generate_description
 from tools.notification import send_request
 from tools.sheets import get_topic, mark_complete, store_sources
-from tools.storage import create_folder, video_to_drive, desc_to_drive
+from tools.storage import desc_to_bucket
 from core.state import AgentState
 
 from langchain.tools import tool
@@ -17,12 +17,18 @@ from google.cloud import firestore
 from langgraph.graph import StateGraph, START, END
 from google import genai
 from datetime import date
+import random
 
 # gets topic from google sheet
 def starter(state: AgentState):
     print("WAKING UP....")
     topic = get_topic()
-    return {"topic": topic}
+    if LOCAL_DEV:
+        num = random.randint(0, 1000)
+        storage_prefix = f"{topic}_{num}"
+    else:
+        storage_prefix = f"{topic}_{date.today()}"
+    return {"topic": topic, "storage_prefix": storage_prefix}
 
 # collects news sources and creates a summary
 def editor(state: AgentState):
@@ -46,12 +52,11 @@ def director(state: AgentState):
         Use this for generation guidelines: {VIDEO_PROMPT}
     """
     
-    contents = generate_video(prompt, state["topic"])
+    contents = generate_video(prompt, state["storage_prefix"])
     gs_link = contents["gs_link"]
     video_url = contents["video_url"]
-    filename = contents["filename"]
 
-    return {"video_url": video_url, "gs_link": gs_link, "filename": filename}
+    return {"video_url": video_url, "gs_link": gs_link}
 
 # creates video description
 def writer(state: AgentState):
@@ -61,9 +66,7 @@ def writer(state: AgentState):
 
 # saves video and post description to newly created google drive folder
 def saver(state: AgentState):
-    folder_id = create_folder(state["topic"])
-    video_to_drive(state["filename"], folder_id)
-    desc_to_drive(state["post_description"], folder_id)
+    desc_to_bucket(state["post_description"], state["storage_prefix"])
 
 # sends approve/reject email 
 def notifier(state: AgentState, config: RunnableConfig):
@@ -74,7 +77,7 @@ def notifier(state: AgentState, config: RunnableConfig):
 
 # once video is approved for publishing
 def publisher(state: AgentState):
-    post_to_bsky(state["post_description"], state["filename"])
+    post_to_bsky(state["post_description"], state["storage_prefix"])
     return {"is_complete": True}
 
 # marks the topic in the google sheet as complete
@@ -86,7 +89,7 @@ graph = StateGraph(AgentState)
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
 # thread_id is the slot the state is saved to
-config = {"configurable": {"thread_id": f"{date.today()}+test20482811"}}
+config = {"configurable": {"thread_id": f"{date.today()}+test2344321"}}
 
 graph.add_node("starter", starter)
 graph.add_node("editor", editor)
@@ -120,13 +123,3 @@ if __name__ == "__main__":
     else:
         # how to pass state?
         app.invoke({"is_complete": False}, config=config)
-
-
-
-
-
-
-
-
-
-

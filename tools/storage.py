@@ -82,31 +82,23 @@ def video_to_drive(filename: str, folder_id: str):
             os.remove(local_video_path)
 """
 
-def desc_to_bucket(description: str, folder_id: str):
-    creds, _ = google.auth.default()
-    
-    media = None
-    try:
-        with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as temp_desc:
-            local_desc_path = temp_desc.name
+def desc_to_bucket(description: str, storage_prefix: str):
+    print("!!REAL!! SAVING DESC TO BUCKET...")
+    with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as temp_desc:
+        local_desc_path = temp_desc.name
 
-        with open(local_desc_path, "w", encoding="utf-8") as file:
-            file.write(description)
+    with open(local_desc_path, "w", encoding="utf-8") as file:
+        file.write(description)
 
-        service = build("drive", "v3", credentials=creds)
-        file_metadata = {"name": "Post Description", "parents": [folder_id]}
+    filename = "description.txt"
 
-        media = MediaFileUpload(
-            local_desc_path, mimetype="text/plain", resumable=True
-        )
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(BUCKET_NAME)
+    blob = bucket.blob(f"{storage_prefix}/{filename}")
 
-        file = (
-            service.files().create(body=file_metadata, media_body=media, fields="id").execute()
-        )
-        return file.get("id")
-    finally:
-        if media:
-            del media
+    blob.upload_from_filename(local_desc_path)
 
-        if os.path.exists(local_desc_path):
-            os.remove(local_desc_path)
+    if os.path.exists(local_desc_path):
+        os.remove(local_desc_path)
+    print("!!REAL!! DESC SAVED TO BUCKET")
+    return True
