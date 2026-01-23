@@ -48,6 +48,12 @@ def generate_video(prompt: str, topic: str):
             time.sleep(10)
             operation = client.operations.get(operation)
 
+        if operation.error:
+            print(f"!!! VIDEO GENERATION FAILED !!!")
+            print(f"Error Code: {operation.error.code}")
+            print(f"Error Message: {operation.error.message}")
+            raise Exception(f"Vertex AI Error: {operation.error.message}")
+
         generated_video = operation.response.generated_videos[0]
         # vertex requires videos to be saved to a local point on the device meaning a gs url cant be saved. saving a temp file bypasses this restraint.
         generated_video.video.save(local_path)
