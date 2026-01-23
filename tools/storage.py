@@ -92,7 +92,7 @@ def desc_to_bucket(description: str, storage_prefix: str):
 
     filename = "description.txt"
 
-    storage_client = storage.Client()
+    storage_client = storage.Client(project=PROJECT_ID)
     bucket = storage_client.bucket(BUCKET_NAME)
     blob = bucket.blob(f"{storage_prefix}/{filename}")
 
