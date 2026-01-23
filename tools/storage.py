@@ -57,14 +57,17 @@ def desc_to_drive(description: str, folder_id: str):
     creds, _ = google.auth.default()
         
     try:
-        with open("post_description.txt", "w") as file:
+        with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as temp_desc:
+            local_desc_path = temp_desc.name
+
+        with open(local_desc_path, "w", encoding="utf-8") as file:
             file.write(description)
 
         service = build("drive", "v3", credentials=creds)
         file_metadata = {"name": "Post Description", "parents": [folder_id]}
 
         media = MediaFileUpload(
-            "post_description.txt", mimetype="text/plain", resumable=True
+            local_desc_path, mimetype="text/plain", resumable=True
         )
 
         file = (
@@ -72,5 +75,5 @@ def desc_to_drive(description: str, folder_id: str):
         )
         return file.get("id")
     finally:
-        if os.path.exists("post_description.txt"):
-            os.path.remove("post_description.txt")
+        if os.path.exists(local_desc_path):
+            os.remove(local_desc_path)
