@@ -23,8 +23,13 @@ def post_to_bsky(description: str, storage_prefix: str):
             client = Client()
             client.login(BSKY_USERNAME, BSKY_PASSWORD)
 
+            # user id
+            user_did = client.me.did
+            # bsky.social doesn't work since account isnt stored there. this should load the server dynamically.
+            pds_did = client.com.atproto.server.describe_server().did
+
             service_auth = client.com.atproto.server.get_service_auth({
-                "aud": f"did:web:{client._service.host}",
+                "aud": pds_did,
                 "lxm": "com.atproto.repo.uploadBlob",
                 "exp": int(time.time()) + 1800,
             })
@@ -37,7 +42,7 @@ def post_to_bsky(description: str, storage_prefix: str):
             upload_url = "https://video.bsky.app/xrpc/app.bsky.video.uploadVideo"
 
             params = {
-                "did": client.me.did,
+                "did": user_did,
                 "name": os.path.basename("video.mp4")
             }
             headers = {
@@ -45,7 +50,7 @@ def post_to_bsky(description: str, storage_prefix: str):
                 "Content-Type": "video/mp4"
             }
 
-            response = requests.post(upload_url, params, headers, data=video_data)
+            response = requests.post(url=upload_url, params=params, headers=headers, data=video_data)
 
             if response.status_code != 200:
                 raise Exception(f"Upload Failed: {response.text}")

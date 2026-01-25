@@ -78,18 +78,19 @@ def notifier(state: AgentState, config: RunnableConfig):
 # once video is approved for publishing
 def publisher(state: AgentState):
     post_to_bsky(state["post_description"], state["storage_prefix"])
-    return {"is_complete": True}
 
 # marks the topic in the google sheet as complete
 def cleaner(state: AgentState):
     mark_complete()
+    # no need for this 
+    return {"is_complete": True}
 
 graph = StateGraph(AgentState)
 
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
 # thread_id is the slot the state is saved to
-config = {"configurable": {"thread_id": f"{date.today()}+test2344321"}}
+config = {"configurable": {"thread_id": f"2026-01-23+test2344321"}}
 
 graph.add_node("starter", starter)
 graph.add_node("editor", editor)
