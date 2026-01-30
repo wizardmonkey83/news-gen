@@ -4,7 +4,7 @@ import tempfile
 from google import genai
 from google.genai import types
 from google.cloud import storage
-from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, TEXT_MODEL, PROJECT_ID, LOCATION, LOCAL_DEV
+from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, TEXT_MODEL, PROJECT_ID, LOCATION, LOCAL_DEV, MULTIPLE_VIDEO
 import random
 from datetime import timedelta
 
@@ -51,19 +51,54 @@ def generate_video(prompt: str, storage_prefix: str):
             print(f"Error: {operation.error}")
 
         generated_video = operation.response.generated_videos[0]
-        # vertex requires videos to be saved to a local point on the device meaning a gs url cant be saved. saving a temp file bypasses this restraint.
-        generated_video.video.save(local_path)
 
         storage_client = storage.Client(project=PROJECT_ID)
         storage_path = f"{storage_prefix}/{filename}"
         bucket = storage_client.bucket(BUCKET_NAME)
         # blob is just another name for file
         blob = bucket.blob(storage_path)
-        blob.upload_from_filename(local_path)
 
-        # cleanup
-        if os.path.exists(local_path):
-            os.remove(local_path)
+        if MULTIPLE_VIDEO:
+            # need to directly upload to bucket due to video length
+            bucket_uri = f"gs://{BUCKET_NAME}/{storage_prefix}"
+
+            # generates further videos using the video that was just generated
+            operation = client.models.generate_videos(
+                model=VIDEO_MODEL,
+                video=generated_video.video,
+                prompt=prompt,
+                config=types.GenerateVideosConfig(
+                    # this needs to be dynamic, probably using google sheet
+                    number_of_videos=1,
+                    resolution="720p",
+                    output_gcs_uri=bucket_uri
+                ),
+            )
+
+            while not operation.done:
+                time.sleep(10)
+                operation = client.operations.get(operation)
+
+            if operation.error:
+                print(f"!!! VIDEO GENERATION FAILED !!!")
+                print(f"Error: {operation.error}")
+                
+            # renames video
+            generated_uri = operation.response.generated_videos[0].video.uri
+            source_blob_name = generated_uri.replace(f"gs://{BUCKET_NAME}/", "")
+            
+            source_blob = bucket.blob(source_blob_name)
+            bucket.rename_blob(source_blob, storage_path)
+
+        else:
+            generated_video.video.save(local_path)
+
+            # finally save
+            blob.upload_from_filename(local_path)
+
+            # cleanup
+            if os.path.exists(local_path):
+                os.remove(local_path)
 
         print("!!REAL!! SUCCESSFULLY CREATED VIDEO")
 
