@@ -28,3 +28,6 @@ class AgentState(TypedDict):
     # status tracking
     is_complete: bool
     error: Optional[str]
+
+class AnalystState(TypedDict):
+    

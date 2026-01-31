@@ -7,15 +7,10 @@ from tools.sheets import get_topic, mark_complete, store_sources
 from tools.storage import desc_to_bucket
 from core.state import AgentState
 
-from langchain.tools import tool
-from langchain.chat_models import init_chat_model
-from langchain.messages import SystemMessage
-from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.runnables import RunnableConfig
 from langgraph_checkpoint_firestore import FirestoreSaver
 from google.cloud import firestore
 from langgraph.graph import StateGraph, START, END
-from google import genai
 from datetime import date
 import random
 
