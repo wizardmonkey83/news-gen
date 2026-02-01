@@ -112,7 +112,23 @@ def mark_complete():
                 body=body
             ).execute()
             print("TOPIC MARKED COMPLETE")
+            
+            update_range = f"C{i}"
+
+            body = {
+                "values": [[str(date.today())]]
+            }
+
+            service.spreadsheets().values().update(
+                spreadsheetId=SPREADSHEET_ID,
+                range=update_range,
+                valueInputOption="RAW",
+                body=body
+            ).execute()
+            print("DATE ADDED TO TOPIC")
             return True
+        
+
     return None
 
 
