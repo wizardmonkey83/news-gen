@@ -8,6 +8,7 @@ from googleapiclient.http import MediaFileUpload
 from googleapiclient.errors import HttpError
 from config import FOLDER_ID, PROJECT_ID, BUCKET_NAME
 
+# **** google drive
 """
 def create_folder(topic: str):
     creds, _ = google.auth.default()
@@ -81,7 +82,7 @@ def video_to_drive(filename: str, folder_id: str):
         if os.path.exists(local_video_path):
             os.remove(local_video_path)
 """
-
+# stores post description to bucket in topic folder --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 def desc_to_bucket(description: str, storage_prefix: str):
     print("!!REAL!! SAVING DESC TO BUCKET...")
     with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as temp_desc:
@@ -102,3 +103,6 @@ def desc_to_bucket(description: str, storage_prefix: str):
         os.remove(local_desc_path)
     print("!!REAL!! DESC SAVED TO BUCKET")
     return True
+
+
+# reviews bsky engagement and saves as json file ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

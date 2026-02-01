@@ -30,4 +30,4 @@ class AgentState(TypedDict):
     error: Optional[str]
 
 class AnalystState(TypedDict):
-    
+    bsky_post_urls: Optional[list]
