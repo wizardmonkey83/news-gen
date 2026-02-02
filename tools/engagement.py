@@ -35,7 +35,7 @@ def extract_bsky_replies(thread: str):
     return post_metrics
             
 
-def review_bsky_metrics(bsky_post_urls: list):
+def extract_bsky_metrics(bsky_post_urls: list):
     client = Client()
     client.login(BSKY_USERNAME, BSKY_PASSWORD)
 

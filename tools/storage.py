@@ -1,12 +1,13 @@
 import google.auth
 from datetime import date
-from google.cloud import storage
+from google.cloud import storage, firestore
 import tempfile
 import os
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from googleapiclient.errors import HttpError
-from config import FOLDER_ID, PROJECT_ID, BUCKET_NAME
+import json
+from config import PROJECT_ID, BUCKET_NAME
 
 # **** google drive
 """
@@ -104,5 +105,23 @@ def desc_to_bucket(description: str, storage_prefix: str):
     print("!!REAL!! DESC SAVED TO BUCKET")
     return True
 
+# saves metrics as json document inside of firestore collection ---------------------------------------------------------------------------------------------------------------------------------------------
+def bsky_metrics_to_firestore(metrics: list):
+    print("!!REAL!! BSKY METRICS UPLOAD STARTING...")
+    # this is fine for now. maybe edit it to be a range.
+    today = date.today()
 
-# reviews bsky engagement and saves as json file ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    client = firestore.Client(project=PROJECT_ID)
+    new_metrics_ref = client.collection("post_metrics").document(f"Week of {today}")
+    json_metrics = json.dumps(metrics)
+    # firestore takes python dicts. problem for future me.
+    new_metrics_ref.set(json_metrics)
+    print("!!REAL!! BSKY METRICS SAVED TO FIRESTORE")
+    return True
+
+
+def bsky_prompt_changes_to_firestore(json_video_response, json_desc_response):
+    
+
+
+
