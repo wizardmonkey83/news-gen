@@ -108,14 +108,15 @@ VIDEO_PROMPT = {
             ]
         },
         "visual_and_set_design": {
-            "primary_shot": "Robot at desk, centered. Over the shoulder \"story-window\" used for product images/silhouettes, chart snippets (simplified), icons, (AI, security, hardware, social), headline cards with logo-free brand-safe design.",
-            "on_screen_graphics": "Title bug (\"PATCH NOTES\"/\"TECH UPDATE\"). Lower thirds (headline + source label + time since published). Ticker (\"BUILD STATUS / TRENDING / CVE / MODEL SCORE / BATTERY%\")(optional).",
-            "motion_and_efficiency": "Locked camera. Reusable loops. Visual variety via: card swaps, UI overlays, occasional \"system alert\" animation for big stories."
+            "primary_shot": "Robot at desk, centered. Over the shoulder \"story-window\"",
+            "on_screen_graphics": "None. There should be no graphics on screen.",
+            "motion_and_efficiency": "Locked camera. Reusable loops."
         },
         "restrictions": [
             "Do not show humaan hands or human faces.",
             "Do not move the camera.",
-            "Do not include readable text on the screen."
+            "Do not include readable text on the screen.",
+            "DO not include any sort of writing, drawing, or content that could resemble text."
         ]
     }
 }
@@ -141,6 +142,32 @@ DESCRIPTION_PROMPT = {
         ]
     }
 }
+
+# you'll probably need to pass news_summary as context. hopefully not. 
+VIDEO_EXTENSION_PROMPT = {
+  "video_extension_prompt": {
+    "objective": "Extend the existing video clip seamlessly. The output must visually and audibly match the preceding frames without any jump cuts or style shifts.",
+    "visual_continuity": {
+      "setting": "Maintain the exact same broadcast desk environment. Do not change the lighting, background graphics, or camera angle.",
+      "subject": "Keep ANCHOR-9 centered and consistent. Do not alter the robot's design, colors, or physical dimensions.",
+      "camera_behavior": "Strictly locked camera. No zooming, panning, or handheld shake. The shot must remain static to preserve the 'news broadcast' aesthetic."
+    },
+    "audio_and_performance_continuity": {
+      "voice_consistency": "Maintain the established voice print: crisp, tech-newsroom fast, and authoritative. Do not change pitch or speed. Do not change any aspect of the previouly existing voice. ",
+      "audio": "The audio must be a direct continuation of the input video's audio stream. Do not change the speaker's timber, pitch, or accent.",
+      "tone": "Deadpan, slightly smug, and robotic. Continue the delivery with 'simulated emotion' (tiny servo beats) rather than human expressiveness.",
+      "pacing": "Ensure the speech flows naturally from the end of the previous clip. No pauses or gaps at the connection point."
+    },
+    "action_instructions": "The robot anchor continues delivering the news report. Movement should be minimal and efficient—limited to small head tilts, status light blinks, or slight hand gestures typical of a news anchor. No sudden or exaggerated motions.",
+    "restrictions": [
+      "Do not introduce new characters or human hands.",
+      "Do not change the aspect ratio or resolution.",
+      "Do not allow the background graphics to 'drift' or morph randomly.",
+      "Do not change any aspect of the voice used in previous videos."
+    ]
+  }
+}
+
 
 
 class Audience(BaseModel):

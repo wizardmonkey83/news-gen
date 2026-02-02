@@ -5,6 +5,7 @@ from typing import TypedDict, List, Optional
 class AgentState(TypedDict):
     # the topic input for the news story
     topic: str
+    num_extensions: Optional[str]
 
     # fields are optional to avoid errors arisng from empty fields
     # ingestion
@@ -28,6 +29,8 @@ class AgentState(TypedDict):
     # status tracking
     is_complete: bool
     error: Optional[str]
+
+    post_url: Optional[str]
 
 class AnalystState(TypedDict):
     bsky_post_urls: Optional[list]

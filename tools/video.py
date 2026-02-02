@@ -4,7 +4,7 @@ import tempfile
 from google import genai
 from google.genai import types
 from google.cloud import storage
-from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, TEXT_MODEL, PROJECT_ID, LOCATION, LOCAL_DEV, MULTIPLE_VIDEO
+from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, TEXT_MODEL, PROJECT_ID, LOCATION, LOCAL_DEV, MULTIPLE_VIDEO, VIDEO_EXTENSION_PROMPT
 import random
 from datetime import timedelta
 
@@ -27,7 +27,7 @@ def generate_signed_url(bucket_name, blob_name):
     )
     return url
 
-def generate_video(prompt: str, storage_prefix: str):
+def generate_video(prompt: str, storage_prefix: str, num_extensions="1"):
     if not MOCK_VIDEO:
         print("!!REAL!! GENERATING VIDEO....")
 
@@ -59,33 +59,36 @@ def generate_video(prompt: str, storage_prefix: str):
         blob = bucket.blob(storage_path)
 
         if MULTIPLE_VIDEO:
+            print(f"!!REAL!! EXTENDING VIDEO {num_extensions}")
             # need to directly upload to bucket due to video length
             bucket_uri = f"gs://{BUCKET_NAME}/{storage_prefix}"
 
-            # generates further videos using the video that was just generated
-            operation = client.models.generate_videos(
-                model=VIDEO_MODEL,
-                video=generated_video.video,
-                prompt=prompt,
-                config=types.GenerateVideosConfig(
-                    # this needs to be dynamic, probably using google sheet
-                    number_of_videos=1,
-                    resolution="720p",
-                    output_gcs_uri=bucket_uri
-                ),
-            )
+            current_video = generated_video.video
+            for i in range(int(num_extensions)):
+                print(f"EXTENSION NUMBER --> {i+1}")
+                operation = client.models.generate_videos(
+                    model=VIDEO_MODEL,
+                    video=current_video,
+                    prompt=str(VIDEO_EXTENSION_PROMPT),
+                    config=types.GenerateVideosConfig(
+                        number_of_videos=1,
+                        resolution="720p",
+                        output_gcs_uri=bucket_uri
+                    ),
+                )
 
-            while not operation.done:
-                time.sleep(10)
-                operation = client.operations.get(operation)
+                while not operation.done:
+                    time.sleep(10)
+                    operation = client.operations.get(operation)
 
-            if operation.error:
-                print(f"!!! VIDEO GENERATION FAILED !!!")
-                print(f"Error: {operation.error}")
+                if operation.error:
+                    print(f"EXTENSION {i+1} FAILED: {operation.error}")
+
+                current_video = operation.response.generated_videos[0].video
                 
             # renames video
-            generated_uri = operation.response.generated_videos[0].video.uri
-            source_blob_name = generated_uri.replace(f"gs://{BUCKET_NAME}/", "")
+            final_uri = current_video.uri
+            source_blob_name = final_uri.replace(f"gs://{BUCKET_NAME}/", "")
             
             source_blob = bucket.blob(source_blob_name)
             bucket.rename_blob(source_blob, storage_path)
@@ -128,7 +131,7 @@ def generate_description(gs_link: str, prompt: str):
 
         response = client.models.generate_content(
             model=TEXT_MODEL, 
-            contents=[video, prompt]
+            contents=[video, str(prompt)]
         )
 
         print("!!REAL!! POST DESCRIPTION SUCCESSFULLY CREATED")

@@ -17,13 +17,13 @@ import random
 # gets topic from google sheet
 def starter(state: AgentState):
     print("WAKING UP....")
-    topic = get_topic()
+    topic, num_extensions = get_topic()
     if LOCAL_DEV:
         num = random.randint(0, 1000)
         storage_prefix = f"{topic}_{num}"
     else:
         storage_prefix = f"{topic}_{date.today()}"
-    return {"topic": topic, "storage_prefix": storage_prefix}
+    return {"topic": topic, "num_extensions": num_extensions, "storage_prefix": storage_prefix}
 
 # collects news sources and creates a summary
 def editor(state: AgentState):
@@ -47,7 +47,7 @@ def director(state: AgentState):
         Use this for generation guidelines: {VIDEO_PROMPT}
     """
     
-    contents = generate_video(prompt, state["storage_prefix"])
+    contents = generate_video(prompt, state["storage_prefix"], state["num_extensions"])
     gs_link = contents["gs_link"]
     video_url = contents["video_url"]
 
@@ -72,12 +72,13 @@ def notifier(state: AgentState, config: RunnableConfig):
 
 # once video is approved for publishing
 def publisher(state: AgentState):
-    post_to_bsky(state["post_description"], state["storage_prefix"])
+    post_url = post_to_bsky(state["post_description"], state["storage_prefix"])
+    return {"post_url": post_url}
 
 # marks the topic in the google sheet as complete
 def cleaner(state: AgentState):
-    mark_complete()
-    # no need for this 
+    mark_complete(state["post_url"])
+    # no need for this :)
     return {"is_complete": True}
 
 graph = StateGraph(AgentState)
@@ -85,7 +86,7 @@ graph = StateGraph(AgentState)
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
 # thread_id is the slot the state is saved to
-config = {"configurable": {"thread_id": f"2026-01-29+test2344321"}}
+config = {"configurable": {"thread_id": f"2026-02-02+test1023381861"}}
 
 graph.add_node("starter", starter)
 graph.add_node("editor", editor)

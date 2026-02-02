@@ -63,9 +63,9 @@ def post_to_bsky(description: str, storage_prefix: str):
 
             while not blob:
                 status_res = requests.get(
-                "https://video.bsky.app/xrpc/app.bsky.video.getJobStatus",
-                params={'jobId': job_id},
-                headers={'Authorization': f'Bearer {token}'}
+                    "https://video.bsky.app/xrpc/app.bsky.video.getJobStatus",
+                    params={'jobId': job_id},
+                    headers={'Authorization': f'Bearer {token}'}
                 )
             
                 status_data = status_res.json()
@@ -86,7 +86,7 @@ def post_to_bsky(description: str, storage_prefix: str):
 
             aspect_ratio = models.AppBskyEmbedDefs.AspectRatio(width=1920, height=1080)
 
-            client.send_post(
+            post_response = client.send_post(
                 text=description,
                 embed=models.AppBskyEmbedVideo.Main(
                     video=blob,
@@ -94,7 +94,11 @@ def post_to_bsky(description: str, storage_prefix: str):
                 )
             )
 
+            new_post_url = post_response.uri
+
             print("!!REAL!! POST PUBLISHED....")
+
+            return new_post_url
         # the more you know....
         finally:
             if os.path.exists(local_video_path):

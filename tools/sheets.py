@@ -1,13 +1,14 @@
 import google.auth
 from googleapiclient.discovery import build
-from config import SPREADSHEET_ID
+import config
+from config import SPREADSHEET_ID, MULTIPLE_VIDEO
 from datetime import datetime, timedelta, date
 
 def get_topic():
     creds, _ = google.auth.default()
     service = build("sheets", "v4", credentials=creds)
 
-    read_range = "A:B"
+    read_range = "A:C"
     result = service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID, range=read_range
     ).execute()
@@ -20,11 +21,11 @@ def get_topic():
 
     # add a "In progress" check to tell the agent to sleep. 1-indexed
     for i, row in enumerate(values, start=1):
-        if len(row) < 2:
+        if len(row) < 3:
             continue
-        topic, status = row[0], row[1]
+        topic, length_secs, status = row[0], row[1], row[2]
         if status.strip().lower() == "pending":
-            update_range = f"B{i}"
+            update_range = f"C{i}"
 
             body = {
                 "values": [["In Progress"]]
@@ -37,7 +38,16 @@ def get_topic():
                 body=body
             ).execute()
             print("TOPIC COLLECTED....")
-            return topic
+
+            # even if it becomes 0, it wont matter as its not used outside of MULTIPLE_VIDEOS
+            num_extensions = (int(length_secs) - 8) / 7
+            if num_extensions > 0:
+                config.MULTIPLE_VIDEO = True
+            else:
+                config.MULTIPLE_VIDEO = False
+
+            print(f"NUM OF VIDEOS --> {num_extensions}")
+            return topic, num_extensions
     return None
     # assumes there is a topic 
     
@@ -57,9 +67,9 @@ def store_sources(sources: dict):
         return None
     
     for i, row in enumerate(values, start=1):
-        if len(row) < 2:
+        if len(row) < 3:
             continue
-        status = row[1]
+        status = row[2]
         if status.strip().lower() == "in progress":
             sources_cell = f"D{i}"
             formatted_sources = ""
@@ -80,11 +90,11 @@ def store_sources(sources: dict):
 
 
 # changing "in progress" to "complete" and inserting post urls ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-def mark_complete():
+def mark_complete(post_url):
     creds, _ = google.auth.default()
     service = build("sheets", "v4", credentials=creds)
 
-    read_range = "A:B"
+    read_range = "A:C"
     result = service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID, range=read_range
     ).execute()
@@ -95,11 +105,11 @@ def mark_complete():
         return None
     
     for i, row in enumerate(values, start=1):
-        if len(row) < 2:
+        if len(row) < 3:
             continue
-        status = row[1]
+        status = row[2]
         if status.strip().lower() == "in progress":
-            update_range = f"B{i}"
+            update_range = f"C{i}"
 
             body = {
                 "values": [["Complete"]]
@@ -111,12 +121,13 @@ def mark_complete():
                 valueInputOption="RAW",
                 body=body
             ).execute()
-            print("TOPIC MARKED COMPLETE")
+            print("!!REAL!! TOPIC MARKED COMPLETE")
             
-            update_range = f"C{i}"
+            # theres gotta be a better way to do this
+            update_range = f"E{i}:F{i}"
 
             body = {
-                "values": [[str(date.today())]]
+                "values": [[str(date.today()), str(post_url)]]
             }
 
             service.spreadsheets().values().update(
@@ -125,7 +136,8 @@ def mark_complete():
                 valueInputOption="RAW",
                 body=body
             ).execute()
-            print("DATE ADDED TO TOPIC")
+
+            print("!!REAL!! DATE AND POST_URL ADDED TO TOPIC")
             return True
         
 
@@ -137,7 +149,7 @@ def get_bsky_url():
     creds, _ = google.auth.default()
     service = build("sheets", "v4", credentials=creds)
     # can this just be "D"?
-    read_range = "A:D"
+    read_range = "A:E"
     result = service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID, range=read_range
     ).execute()
@@ -155,7 +167,7 @@ def get_bsky_url():
     for i, row in enumerate(values, start=1):
         if len(row) < 5:
             continue
-        date_added = row[2]
+        date_added = row[4]
         date_added.split("-")
         row_year, row_month, row_day = date_added[0], date_added[1], date_added[2]
 
@@ -164,7 +176,7 @@ def get_bsky_url():
         week_ago = curr_date - timedelta(weeks=1)
         # then its in a valid range. one week for now. 
         if week_ago <= row_date and row_date <= curr_date:
-            post_url = row[4]
+            post_url = row[5]
             post_urls.append(post_url)
             
     return post_urls
