@@ -1,8 +1,18 @@
 from core.state import AnalystState
+from langgraph.graph import StateGraph, START, END
+from langchain_core.runnables import RunnableConfig
+from langgraph_checkpoint_firestore import FirestoreSaver
+from google.cloud import firestore
+from config import PROJECT_ID
+import random
+from datetime import date
+
+
 from tools.sheets import get_bsky_url
 from tools.engagement import extract_bsky_metrics
 from tools.sentiment import review_bsky_metrics
-from tools.storage import bsky_metrics_to_firestore
+from tools.storage import bsky_metrics_to_firestore, bsky_prompt_changes_to_firestore
+
 
 def starter(state: AnalystState):
     bsky_post_urls = get_bsky_url()
@@ -26,4 +36,32 @@ def reviewer(state: AnalystState):
     }
 
 def updater(state: AnalystState):
-    
+    bsky_prompt_changes_to_firestore(state["dict_video_response"], state["dict_desc_response"])
+
+
+graph = StateGraph(AnalystState)
+client = firestore.Client(project=PROJECT_ID)
+memory = FirestoreSaver(project_id=PROJECT_ID)
+config = {"configurable": {"thread_id": f"{date.today()}_{random.randint(0, 1000)}"}}
+
+graph.add_node("starter", starter)
+graph.add_node("extracter", extracter)
+graph.add_node("converter", converter)
+graph.add_node("reviewer", reviewer)
+graph.add_node("updater", updater)
+
+graph.add_edge(START, "starter")
+graph.add_edge("starter", "extracter")
+graph.add_edge("extracter", "converter")
+graph.add_edge("converter", "reviewer")
+graph.add_edge("reviewer", "updater")
+graph.add_edge("updater", END)
+
+app = graph.compile(checkpointer=memory)
+
+if __name__ == "__main__":
+    snapshot = app.get_state(config)
+    if snapshot.next:
+        app.invoke(None, config=config)
+    else:
+        app.invoke(config=config)

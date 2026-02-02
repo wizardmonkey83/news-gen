@@ -112,7 +112,7 @@ def bsky_metrics_to_firestore(metrics: list):
     today = date.today()
 
     client = firestore.Client(project=PROJECT_ID)
-    new_metrics_ref = client.collection("post_metrics").document(f"Week of {today}")
+    new_metrics_ref = client.collection("news_gen_post_metrics").document(f"BSKY_week_of_{today}")
     json_metrics = json.dumps(metrics)
     # firestore takes python dicts. problem for future me.
     new_metrics_ref.set(json_metrics)
@@ -120,8 +120,22 @@ def bsky_metrics_to_firestore(metrics: list):
     return True
 
 
-def bsky_prompt_changes_to_firestore(json_video_response, json_desc_response):
+def bsky_prompt_changes_to_firestore(dict_video_response: dict, dict_desc_response: dict):
+    print("!!REAL!! SAVING PROMPT UPDATES TO FIRESTORE....")
+
+    client = firestore.Client(project=PROJECT_ID)
+    video_prompt_ref = client.collection("news_gen_prompts").document("robo_anchor_video_prompt")
+    desc_prompt_ref = client.collection("news_gen_prompts").document("robo_anchor_desc_prompt")
+
+    # lookout for dot notation to store nested objects. this might be a pain
+    video_prompt_ref.update(dict_video_response)
+    desc_prompt_ref.update(dict_desc_response)
     
+    print("!!REAL!! PROMPT UPDATES SAVED TO FIRESTORE")
+    return True
+
+
+
 
 
 

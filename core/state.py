@@ -34,5 +34,5 @@ class AnalystState(TypedDict):
     post_metrics: Optional[list]
     
     # this needs to be json format? 
-    json_video_response: Optional[dict]
-    json_desc_response: Optional[dict]
+    dict_video_response: Optional[dict]
+    dict_desc_response: Optional[dict]
