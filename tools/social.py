@@ -6,6 +6,7 @@ import os
 import requests
 from config import MOCK_SOCIAL, BSKY_USERNAME, BSKY_PASSWORD, PROJECT_ID, BUCKET_NAME
 
+# docs: https://docs.bsky.app/docs/get-started
 def post_to_bsky(description: str, storage_prefix: str):
     if not MOCK_SOCIAL:
         print("!!REAL!! UPLOADING VIDEO....")

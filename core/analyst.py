@@ -23,7 +23,7 @@ def extracter(state: AnalystState):
     metrics = extract_bsky_metrics(state["bsky_post_urls"])
     return {"post_metrics": metrics}
 
-# saves post_metrics as a json file in a gs bucket
+# saves post_metrics to firestore
 def converter(state: AnalystState):
     bsky_metrics_to_firestore(state["post_metrics"])
 

@@ -16,18 +16,20 @@ SPREADSHEET_ID = config("SPREADSHEET_ID")
 BSKY_USERNAME = config("BSKY_USERNAME")
 BSKY_PASSWORD = config("BSKY_PASSWORD")
 
-# for testing purposes its a bit cheaper than 3.0
+
 TEXT_MODEL = "gemini-2.5-pro"
 VIDEO_MODEL = "veo-3.1-fast-generate-preview"
 
-# for testing theres no need to generate videos or post to socials
+
 MOCK_VIDEO = False
-MULTIPLE_VIDEO = True
 MOCK_NEWS = False
 MOCK_SOCIAL = False
+
 LOCAL_DEV = True
 LOCAL_FIRESTORE_METRICS = True
 
+MULTIPLE_VIDEO = False
+RSS_FEED = True
 
 METRIC_REVIEW_PROMPT = {
     "analyst_role": {
@@ -169,7 +171,12 @@ VIDEO_EXTENSION_PROMPT = {
 }
 
 
+RSS_FEED_ANALYSIS_PROMPT = {
 
+}
+
+
+# docs: https://ai.google.dev/gemini-api/docs/structured-output?example=recipes
 class Audience(BaseModel):
     primary: str = Field(description="Description of the primary target audience for the show.")
     secondary: str = Field(description="Description of the secondary audience, including builders and creators.")

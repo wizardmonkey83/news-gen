@@ -4,6 +4,7 @@ import config
 from config import SPREADSHEET_ID, MULTIPLE_VIDEO
 from datetime import datetime, timedelta, date
 
+# sheets docs: https://developers.google.com/workspace/sheets/api/guides/values
 def get_topic():
     creds, _ = google.auth.default()
     service = build("sheets", "v4", credentials=creds)
@@ -52,6 +53,7 @@ def get_topic():
     # assumes there is a topic 
     
 # stores news sources for easy access ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# sheets docs: https://developers.google.com/workspace/sheets/api/guides/values
 def store_sources(sources: dict):
     creds, _ = google.auth.default()
     service = build("sheets", "v4", credentials=creds)
@@ -90,6 +92,7 @@ def store_sources(sources: dict):
 
 
 # changing "in progress" to "complete" and inserting post urls ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# sheets docs: https://developers.google.com/workspace/sheets/api/guides/values
 def mark_complete(post_url):
     creds, _ = google.auth.default()
     service = build("sheets", "v4", credentials=creds)
@@ -145,6 +148,8 @@ def mark_complete(post_url):
 
 
 # getting bluesky url -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# sheets docs: https://developers.google.com/workspace/sheets/api/guides/values
+# date reference: https://stackoverflow.com/questions/151199/how-to-calculate-number-of-days-between-two-given-dates
 def get_bsky_url():
     creds, _ = google.auth.default()
     service = build("sheets", "v4", credentials=creds)

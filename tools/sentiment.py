@@ -9,6 +9,7 @@ client = genai.Client(
     location=LOCATION
 )
 
+# structured output docs: https://ai.google.dev/gemini-api/docs/structured-output?example=recipe
 def review_bsky_metrics(metrics: list):
     if LOCAL_FIRESTORE_METRICS:
         json_metrics = json.dumps(metrics)

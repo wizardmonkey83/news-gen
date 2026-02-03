@@ -28,6 +28,7 @@ def generate_signed_url(bucket_name, blob_name):
     return url
 
 def generate_video(prompt: str, storage_prefix: str, num_extensions="1"):
+    # video gen docs: https://ai.google.dev/gemini-api/docs/video?example=dialogue
     if not MOCK_VIDEO:
         print("!!REAL!! GENERATING VIDEO....")
 
