@@ -130,9 +130,22 @@ def bsky_prompt_changes_to_firestore(dict_video_response: dict, dict_desc_respon
     video_prompt_ref = client.collection("news_gen_prompts").document("robo_anchor_video_prompt")
     desc_prompt_ref = client.collection("news_gen_prompts").document("robo_anchor_desc_prompt")
 
-    # lookout for dot notation to store nested objects. this might be a pain
-    video_prompt_ref.update(dict_video_response)
-    desc_prompt_ref.update(dict_desc_response)
+    curr_video_snap = video_prompt_ref.get()
+    curr_desc_snap = desc_prompt_ref.get()
+
+
+    curr_dict_video_prompt = curr_video_snap.to_dict()
+    curr_dict_desc_prompt = curr_desc_snap.to_dict()
+
+    for key in dict_video_response.keys():
+        curr_dict_video_prompt[key] = dict_video_response[key]
+
+    for key in dict_desc_response.keys():
+        curr_dict_desc_prompt[key] = dict_desc_response[key]
+
+    # remember you cant push to a snapshots
+    video_prompt_ref.set(curr_dict_video_prompt)
+    desc_prompt_ref.set(curr_dict_desc_prompt)
     
     print("!!REAL!! PROMPT UPDATES SAVED TO FIRESTORE")
     return True

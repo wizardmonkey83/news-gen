@@ -17,7 +17,7 @@ def review_bsky_metrics(metrics: list):
         video_response = client.models.generate_content(
             model=TEXT_MODEL,
             contents={
-                "metric_review_prompt": str(METRIC_REVIEW_PROMPT),
+                "metric_review_prompt": json.dumps(METRIC_REVIEW_PROMPT),
                 "metrics": json_metrics,
             },
             config={
@@ -31,7 +31,7 @@ def review_bsky_metrics(metrics: list):
         desc_response = client.models.generate_content(
             model=TEXT_MODEL,
             contents={
-                "metric_review_prompt": str(METRIC_REVIEW_PROMPT),
+                "metric_review_prompt": json.dumps(METRIC_REVIEW_PROMPT),
                 "metrics": json_metrics,
             },
             config={

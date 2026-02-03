@@ -194,36 +194,27 @@ RSS_FEED_ANALYSIS_PROMPT = {
 
 
 # docs: https://ai.google.dev/gemini-api/docs/structured-output?example=recipes
-class Audience(BaseModel):
-    primary: str = Field(description="Description of the primary target audience for the show.")
-    secondary: str = Field(description="Description of the secondary audience, including builders and creators.")
-    platform_fit: str = Field(description="The specific social platforms and content formats the show is designed for.")
-
 class ToneAndComedicDNA(BaseModel):
-    tone_keywords: List[str] = Field(description="Keywords defining the emotional and stylistic tone of the broadcast.")
-    comedy_sources: List[str] = Field(description="Specific sources of humor derived from tech culture and robot logic.")
-    what_the_show_is_not: List[str] = Field(description="Guardrails defining what content or approaches to avoid.")
+    tone_keywords: Optional[List[str]] = Field(description="Keywords defining the emotional and stylistic tone of the broadcast.")
+    comedy_sources: Optional[List[str]] = Field(description="Specific sources of humor derived from tech culture and robot logic.")
 
 class HostPersona(BaseModel):
-    name: str = Field(description="The name or designation of the robot anchor.")
-    summary: str = Field(description="A summary of the host's personality, perspective, and limitations regarding human behavior.")
+    name: Optional[str] = Field(description="The name or designation of the robot anchor.")
+    summary: Optional[str] = Field(description="A summary of the host's personality, perspective, and limitations regarding human behavior.")
 
 class VoiceAndDelivery(BaseModel):
-    pace: str = Field(description="The speed and rhythm of the host's speech.")
-    emotion: str = Field(description="How the host simulates or displays emotion (e.g., status lights).")
-    tics_and_catchphrases: List[str] = Field(description="Recurring phrases or verbal habits used by the host.")
-    core_comedy_flaws: List[str] = Field(description="Personality flaws or cognitive biases that serve as sources of humor.")
-    robot_rules: List[str] = Field(description="Operational rules the host must follow regarding accuracy and presentation.")
+    pace: Optional[str] = Field(description="The speed and rhythm of the host's speech.")
+    emotion: Optional[str] = Field(description="How the host simulates or displays emotion (e.g., status lights).")
+    tics_and_catchphrases: Optional[List[str]] = Field(description="Recurring phrases or verbal habits used by the host.")
+    core_comedy_flaws: Optional[List[str]] = Field(description="Personality flaws or cognitive biases that serve as sources of humor.")
 
 class VisualAndSetDesign(BaseModel):
-    primary_shot: str = Field(description="Description of the main camera framing and composition.")
-    on_screen_graphics: str = Field(description="Details on overlays, lower thirds, tickers, and title bugs.")
-    motion_and_efficiency: str = Field(description="Guidelines for camera movement and visual variety.")
+    primary_shot: Optional[str] = Field(description="Description of the main camera framing and composition.")
+    on_screen_graphics: Optional[str] = Field(description="Details on overlays, lower thirds, tickers, and title bugs.")
+    motion_and_efficiency: Optional[str] = Field(description="Guidelines for camera movement and visual variety.")
 
 # be aware of what fields that are able to be edited. some guidelines should remain immutable. 
 class VideoPromptModel(BaseModel):
-    show_concept: str = Field(description="A one-sentence summary of the show's premise and host.")
-    audience: Audience = Field(description="Demographic and platform targeting details.")
     tone_and_comedic_dna: ToneAndComedicDNA = Field(description="Guidelines for the show's humor and stylistic tone.")
     host_persona: HostPersona = Field(description="Identity and personality details of the robot host.")
     voice_and_delivery: VoiceAndDelivery = Field(description="Instructions for the host's speech patterns and behavioral quirks.")
@@ -231,7 +222,7 @@ class VideoPromptModel(BaseModel):
 
 
 class DescriptionPromptModel(BaseModel):
-    role: List[str] = Field(description="The persona and perspective the writer must adopt.")
-    task: str = Field(description="The specific objective, including character limits and format.")
-    tone: List[str] = Field(description="Stylistic guidelines for the text, including vocabulary and attitude.")
-    example_outputs: List[str] = Field(description="Examples of successful outputs to guide the generation.")
+    role: Optional[List[str]] = Field(description="The persona and perspective the writer must adopt.")
+    task: Optional[str] = Field(description="The specific objective, including character limits and format.")
+    tone: Optional[List[str]] = Field(description="Stylistic guidelines for the text, including vocabulary and attitude.")
+    example_outputs: Optional[List[str]] = Field(description="Examples of successful outputs to guide the generation.")
