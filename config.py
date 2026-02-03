@@ -21,9 +21,9 @@ TEXT_MODEL = "gemini-2.5-pro"
 VIDEO_MODEL = "veo-3.1-fast-generate-preview"
 
 
-MOCK_VIDEO = False
+MOCK_VIDEO = True
 MOCK_NEWS = False
-MOCK_SOCIAL = False
+MOCK_SOCIAL = True
 
 LOCAL_DEV = True
 LOCAL_FIRESTORE_METRICS = True

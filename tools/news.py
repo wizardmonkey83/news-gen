@@ -85,6 +85,7 @@ def collect_news(topic: str):
         else:
             # feedparser docs: https://feedparser.readthedocs.io/en/latest/introduction/
             try:
+                print("!!REAL!! GATHERING NEWS VIA RSS FEED...")
                 url = f"https://news.google.com/rss/search?q={topic}&hl=en-US&gl=US&ceid=US:en"
                 formatted_response = feedparser.parse(url)
 
@@ -107,7 +108,7 @@ def collect_news(topic: str):
                         sources[source_title].append(source_url)
                     
                     payload[title].append(desc)
-
+                print("!!REAL!! SOURCES GATHERED AND PARSED...")
                 response = client.models.generate_content(
                     model=TEXT_MODEL,
                     contents=[RSS_FEED_ANALYSIS_PROMPT, json.dumps(payload)]
@@ -117,7 +118,7 @@ def collect_news(topic: str):
                     "summary": response.text,
                     "sources": sources,
                 }
-            
+                print("!!REAL!! GEMINI SUMMARY GENERATED")
                 return contents
             
             except Exception as e:
