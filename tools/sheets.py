@@ -47,7 +47,7 @@ def get_topic():
             else:
                 config.MULTIPLE_VIDEO = False
 
-            print(f"NUM OF VIDEOS --> {num_extensions}")
+            print(f"NUM OF EXTENSIONS --> {num_extensions}")
             return topic, num_extensions
     return None
     # assumes there is a topic 

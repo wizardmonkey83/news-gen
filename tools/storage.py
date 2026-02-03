@@ -7,9 +7,9 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from googleapiclient.errors import HttpError
 import json
-from config import PROJECT_ID, BUCKET_NAME
+from config import PROJECT_ID, BUCKET_NAME, MOCK_DESC
 
-# **** google drive
+# in case google drive wants to give me permission
 """
 def create_folder(topic: str):
     creds, _ = google.auth.default()
@@ -86,25 +86,26 @@ def video_to_drive(filename: str, folder_id: str):
 # stores post description to bucket in topic folder --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # bucket docs: https://docs.cloud.google.com/storage/docs/buckets?authuser=1
 def desc_to_bucket(description: str, storage_prefix: str):
-    print("!!REAL!! SAVING DESC TO BUCKET...")
-    with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as temp_desc:
-        local_desc_path = temp_desc.name
+    if not MOCK_DESC:
+        print("!!REAL!! SAVING DESC TO BUCKET...")
+        with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as temp_desc:
+            local_desc_path = temp_desc.name
 
-    with open(local_desc_path, "w", encoding="utf-8") as file:
-        file.write(description)
+        with open(local_desc_path, "w", encoding="utf-8") as file:
+            file.write(description)
 
-    filename = "description.txt"
+        filename = "description.txt"
 
-    storage_client = storage.Client(project=PROJECT_ID)
-    bucket = storage_client.bucket(BUCKET_NAME)
-    blob = bucket.blob(f"{storage_prefix}/{filename}")
+        storage_client = storage.Client(project=PROJECT_ID)
+        bucket = storage_client.bucket(BUCKET_NAME)
+        blob = bucket.blob(f"{storage_prefix}/{filename}")
 
-    blob.upload_from_filename(local_desc_path)
+        blob.upload_from_filename(local_desc_path)
 
-    if os.path.exists(local_desc_path):
-        os.remove(local_desc_path)
-    print("!!REAL!! DESC SAVED TO BUCKET")
-    return True
+        if os.path.exists(local_desc_path):
+            os.remove(local_desc_path)
+        print("!!REAL!! DESC SAVED TO BUCKET")
+        return True
 
 # saves metrics as json document inside of firestore collection -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # firestore docs: https://firebase.google.com/docs/firestore/manage-data/add-data#python

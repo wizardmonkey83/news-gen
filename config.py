@@ -20,9 +20,9 @@ BSKY_PASSWORD = config("BSKY_PASSWORD")
 TEXT_MODEL = "gemini-2.5-pro"
 VIDEO_MODEL = "veo-3.1-fast-generate-preview"
 
-
-MOCK_VIDEO = True
 MOCK_NEWS = False
+MOCK_VIDEO = True
+MOCK_DESC = True
 MOCK_SOCIAL = True
 
 LOCAL_DEV = True

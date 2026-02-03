@@ -4,7 +4,7 @@ import tempfile
 from google import genai
 from google.genai import types
 from google.cloud import storage
-from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, TEXT_MODEL, PROJECT_ID, LOCATION, LOCAL_DEV, MULTIPLE_VIDEO, VIDEO_EXTENSION_PROMPT
+from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, TEXT_MODEL, PROJECT_ID, LOCATION, LOCAL_DEV, MULTIPLE_VIDEO, VIDEO_EXTENSION_PROMPT, MOCK_DESC
 import random
 from datetime import timedelta
 
@@ -122,7 +122,7 @@ def generate_video(prompt: str, storage_prefix: str, num_extensions="1"):
         }
     
 def generate_description(gs_link: str, prompt: str):
-    if not MOCK_VIDEO:
+    if not MOCK_DESC and not MOCK_VIDEO:
         print("!!REAL!! GENERATING POST DESCRIPTION....")
 
         video = types.Part.from_uri(

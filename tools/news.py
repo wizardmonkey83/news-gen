@@ -87,22 +87,26 @@ def collect_news(topic: str):
             try:
                 print("!!REAL!! GATHERING NEWS VIA RSS FEED...")
                 url = f"https://news.google.com/rss/search?q={topic}&hl=en-US&gl=US&ceid=US:en"
+                # cant contain control characters
+                url = url.replace(" ", "%20")
                 formatted_response = feedparser.parse(url)
 
                 sources = defaultdict(list)
                 payload = defaultdict(list)
                 for item in formatted_response.entries:
-                    title = item["title"]
-                    rss_link = item["link"]
-                    pub_date = item["pubDate"]
-                    if item["summary"]:
-                        desc = item["summary"]
-                    elif item["summary_detail"]:
-                        desc = item["summary_detail"]
+                    title = item.get("title")
+                    rss_link = item.get("link")
+                    if item.get("pubDate"):
+                        pub_date = item.get("pubDate", "no publication date for source found")
+
+                    if item.get("summary"):
+                        desc = item.get("summary")
+                    elif item.get("summary_detail"):
+                        desc = item.get("summary_detail")
                     else:
                         # should be cautious with this. likely includes additional html that may impact models ability to revise.
-                        desc = item["description"]
-                    if item["source"]:
+                        desc = item.get("description", "no description/summary for source found")
+                    if item.get("source"):
                         # i think source_url is a proxy redirect link
                         source_url, source_title = item["source"]["href"], item["source"]["title"]
                         sources[source_title].append(source_url)
@@ -111,7 +115,7 @@ def collect_news(topic: str):
                 print("!!REAL!! SOURCES GATHERED AND PARSED...")
                 response = client.models.generate_content(
                     model=TEXT_MODEL,
-                    contents=[RSS_FEED_ANALYSIS_PROMPT, json.dumps(payload)]
+                    contents=[json.dumps(RSS_FEED_ANALYSIS_PROMPT), json.dumps(payload)]
                 )
                     
                 contents = {
