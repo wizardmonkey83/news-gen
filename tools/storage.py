@@ -113,9 +113,8 @@ def bsky_metrics_to_firestore(metrics: list):
 
     client = firestore.Client(project=PROJECT_ID)
     new_metrics_ref = client.collection("news_gen_post_metrics").document(f"BSKY_week_of_{today}")
-    json_metrics = json.dumps(metrics)
-    # firestore takes python dicts. problem for future me.
-    new_metrics_ref.set(json_metrics)
+    # this should fulfil the dict requirement....
+    new_metrics_ref.set({"metrics": metrics})
     print("!!REAL!! BSKY METRICS SAVED TO FIRESTORE")
     return True
 

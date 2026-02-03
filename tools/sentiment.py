@@ -39,9 +39,12 @@ def review_bsky_metrics(metrics: list):
             },
         )
 
-        json_description_response = DescriptionPromptModel.model_validate_json(desc_response.text)
+        json_desc_response = DescriptionPromptModel.model_validate_json(desc_response.text)
 
-        return {"json_desc_response": json_description_response, "json_video_response": json_video_response}
+        dict_video_response = json.loads(json_video_response)
+        dict_desc_response = json.loads(json_desc_response)
+
+        return dict_video_response, dict_desc_response
     
         
 

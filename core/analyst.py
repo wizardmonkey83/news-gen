@@ -29,11 +29,8 @@ def converter(state: AnalystState):
 
 # compares metrics to current prompt/s
 def reviewer(state: AnalystState):
-    contents = review_bsky_metrics(state["post_metrics"])
-    return {
-        "json_video_response": contents["json_video_response"], 
-        "json_desc_response": contents["json_desc_response"],
-    }
+    dict_video_response, dict_desc_response = review_bsky_metrics(state["post_metrics"])
+    return {"dict_video_response": dict_video_response, "dict_desc_response": dict_desc_response}
 
 def updater(state: AnalystState):
     bsky_prompt_changes_to_firestore(state["dict_video_response"], state["dict_desc_response"])
