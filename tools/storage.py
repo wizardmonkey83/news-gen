@@ -2,7 +2,38 @@ from datetime import date
 from google.cloud import storage, firestore
 import tempfile
 import os
+import config
 from config import PROJECT_ID, BUCKET_NAME, MOCK_DESC
+
+# imports prompts from firestore and loads them into config -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+def load_prompts_to_config():
+    client = firestore.Client(project=PROJECT_ID)
+
+    video_prompt_ref = client.collection("news_gen_prompts").document("robo_anchor_video_prompt")
+    desc_prompt_ref = client.collection("news_gen_prompts").document("robo_anchor_desc_prompt")
+    metric_review_prompt_ref = client.collection("news_gen_prompts").document("robo_anchor_metric_review_prompt")
+    video_extension_prompt_ref = client.collection("news_gen_prompts").document("robo_anchor_video_extension_prompt")
+    rss_analysis_prompt_ref = client.collection("news_gen_prompts").document("robo_anchor_rss_analysis_prompt")
+
+    video_snap = video_prompt_ref.get()
+    desc_snap = desc_prompt_ref.get()
+    metric_review_snap = metric_review_prompt_ref.get()
+    video_extension_snap = video_extension_prompt_ref.get()
+    rss_analysis_snap = rss_analysis_prompt_ref.get()
+
+    dict_video_prompt = video_snap.to_dict()
+    dict_desc_prompt = desc_snap.to_dict()
+    dict_metric_review_prompt = metric_review_snap.to_dict()
+    dict_video_extension_prompt = video_extension_snap.to_dict()
+    dict_rss_analysis_prompt = rss_analysis_snap.to_dict()
+
+    config.VIDEO_PROMPT = dict_video_prompt
+    config.DESCRIPTION_PROMPT = dict_desc_prompt
+    config.METRIC_REVIEW_PROMPT = dict_metric_review_prompt
+    config.VIDEO_EXTENSION_PROMPT = dict_video_extension_prompt
+    config.RSS_FEED_ANALYSIS_PROMPT = dict_rss_analysis_prompt
+
+    return True
 
 # stores post description to bucket in topic folder --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # bucket docs: https://docs.cloud.google.com/storage/docs/buckets?authuser=1

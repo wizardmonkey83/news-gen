@@ -4,7 +4,7 @@ from tools.news import collect_news
 from tools.video import generate_video, generate_description
 from tools.notification import send_request
 from tools.sheets import get_topic, mark_complete, store_sources
-from tools.storage import desc_to_bucket
+from tools.storage import desc_to_bucket, load_prompts_to_config
 from core.state import AgentState
 
 from langchain_core.runnables import RunnableConfig
@@ -17,6 +17,7 @@ import random
 # gets topic from google sheet
 def starter(state: AgentState):
     print("WAKING UP....")
+    load_prompts_to_config()
     topic, num_extensions = get_topic()
     if LOCAL_DEV:
         num = random.randint(0, 1000)

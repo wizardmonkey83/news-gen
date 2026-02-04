@@ -47,8 +47,3 @@ def review_bsky_metrics(metrics: dict):
         dict_desc_response = json_desc_response.model_dump()
 
         return dict_video_response, dict_desc_response
-    
-        
-
-        
-
