@@ -20,14 +20,20 @@ BSKY_PASSWORD = config("BSKY_PASSWORD")
 TEXT_MODEL = "gemini-2.5-pro"
 VIDEO_MODEL = "veo-3.1-fast-generate-preview"
 
+# for agent
 MOCK_NEWS = False
 MOCK_VIDEO = True
 MOCK_DESC = True
 MOCK_SOCIAL = True
 
+# for analyst
+MOCK_METRICS = True
+
+
 LOCAL_DEV = True
 LOCAL_FIRESTORE_METRICS = True
 
+# for agent
 MULTIPLE_VIDEO = False
 RSS_FEED = True
 

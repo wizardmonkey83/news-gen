@@ -1,5 +1,5 @@
 from atproto import Client, AtUri
-from config import BSKY_USERNAME, BSKY_PASSWORD
+from config import BSKY_USERNAME, BSKY_PASSWORD, MOCK_METRICS
 from datetime import datetime
 import time
 from atproto_client.models.app.bsky.feed.defs import ThreadViewPost, BlockedPost, NotFoundPost
@@ -36,44 +36,66 @@ def extract_bsky_replies(thread: str):
             
 
 def extract_bsky_metrics(bsky_post_urls: list):
-    client = Client()
-    client.login(BSKY_USERNAME, BSKY_PASSWORD)
+    if not MOCK_METRICS:
+        client = Client()
+        client.login(BSKY_USERNAME, BSKY_PASSWORD)
 
-    metrics = []
-    for url in bsky_post_urls:
-        try:
-            parts = url.split("/")
-            if "profile" not in parts or "post" not in parts:
-                raise ValueError("Invalid bsky url format")
+        metrics = []
+        for url in bsky_post_urls:
+            try:
+                parts = url.split("/")
+                if "profile" not in parts or "post" not in parts:
+                    raise ValueError("Invalid bsky url format")
+                
+                handle_index, post_index = parts.index("profile") + 1, parts.index("post") + 1
+                handle, rkey = parts[handle_index], parts[post_index]
+
+                doc = client.resolve_handle(handle)
+                did = doc.did
+
+                at_uri = AtUri.from_str(f"at://{did}/app.bsky.feed.post/{rkey}")
+            except Exception as e:
+                print(f"Error parsing url: {e}")
+                continue
             
-            handle_index, post_index = parts.index("profile") + 1, parts.index("post") + 1
-            handle, rkey = parts[handle_index], parts[post_index]
+            try:
+                data = client.get_post_thread(uri=at_uri, depth=1000, parent_height=0)
+                thread = data.thread
 
-            doc = client.resolve_handle(handle)
-            did = doc.did
+                if not isinstance(thread, ThreadViewPost):
+                    print(f"Unable to find post. URL: {url}")
+                    continue
 
-            at_uri = AtUri.from_str(f"at://{did}/app.bsky.feed.post/{rkey}")
-        except Exception as e:
-            print(f"Error parsing url: {e}")
-            continue
-        
-        try:
-            data = client.get_post_thread(uri=at_uri, depth=1000, parent_height=0)
-            thread = data.thread
+                post_metrics = extract_bsky_replies(thread, url)
 
-            if not isinstance(thread, ThreadViewPost):
-                print(f"Unable to find post. URL: {url}")
+                if post_metrics:
+                    post_metrics["url"] = url
+                    metrics.append(post_metrics)
+
+            except Exception as e:
+                print(f"Error occured: {e}")
                 continue
 
-            post_metrics = extract_bsky_replies(thread, url)
+            time.sleep(1)
+        return metrics
 
-            if post_metrics:
-                post_metrics["url"] = url
-                metrics.append(post_metrics)
+    else:
 
-        except Exception as e:
-            print(f"Error occured: {e}")
-            continue
-
-        time.sleep(1)
-    return metrics
+        post_metrics = {
+            "uri": "at:did:plc:1234",
+            "author_handle": "mickey mouse",
+            "text": "post about clubhouses",
+            "posted_at": "01/01/0001",
+            "scraped_at": "02/03/2026",
+            "metrics": {
+                "likes": 50,
+                "reposts": 3,
+                "replies": 2,
+            },
+            "replies": [
+                {"text": "this post is so bad. sesame street rules."},
+                {"text": "the voice speaks way too fast. kinda hard to understand."},
+                {"text": "the lighting is too dark, looks depressing."}
+            ],
+            "url": "https://fake_url.com"
+        }
