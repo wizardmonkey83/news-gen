@@ -37,9 +37,11 @@ def extract_bsky_replies(thread: str):
 
 def extract_bsky_metrics(bsky_post_urls: list):
     if not MOCK_BSKY_METRICS:
+        print("!!REAL!! PARSING BSKY URLS...")
         client = Client()
         client.login(BSKY_USERNAME, BSKY_PASSWORD)
 
+        metrics = {}
         for url in bsky_post_urls:
             try:
                 parts = url.split("/")
@@ -52,7 +54,7 @@ def extract_bsky_metrics(bsky_post_urls: list):
                 doc = client.resolve_handle(handle)
                 did = doc.did
 
-                at_uri = AtUri.from_str(f"at://{did}/app.bsky.feed.post/{rkey}")
+                at_uri = f"at://{did}/app.bsky.feed.post/{rkey}"
             except Exception as e:
                 print(f"Error parsing url: {e}")
                 continue
@@ -65,17 +67,20 @@ def extract_bsky_metrics(bsky_post_urls: list):
                     print(f"Unable to find post. URL: {url}")
                     continue
 
-                post_metrics = extract_bsky_replies(thread, url)
+                post_metrics = extract_bsky_replies(thread)
 
                 if post_metrics:
                     post_metrics["url"] = url
+                    metrics["metrics"] = post_metrics
 
             except Exception as e:
                 print(f"Error occured: {e}")
                 continue
 
             time.sleep(1)
-        return post_metrics
+
+        print(f"!!REAL!! POST METRICS GATHERED: {metrics}")
+        return metrics
 
     else:
 

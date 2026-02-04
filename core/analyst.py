@@ -39,7 +39,7 @@ def updater(state: AnalystState):
 graph = StateGraph(AnalystState)
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
-config = {"configurable": {"thread_id": f"{date.today()}_33030201"}}
+config = {"configurable": {"thread_id": f"{date.today()}_31112u21u1i"}}
 
 graph.add_node("starter", starter)
 graph.add_node("extracter", extracter)

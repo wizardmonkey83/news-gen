@@ -154,7 +154,7 @@ def get_bsky_url():
     creds, _ = google.auth.default()
     service = build("sheets", "v4", credentials=creds)
     # can this just be "D"?
-    read_range = "A:E"
+    read_range = "A:F"
     result = service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID, range=read_range
     ).execute()
@@ -165,16 +165,20 @@ def get_bsky_url():
         return None
     
     today = str(date.today())
-    today.split("-")
-    curr_year, curr_month, curr_day = today[0], today[1], today[2]
+    today_split = today.split("-")
+    curr_year, curr_month, curr_day = int(today_split[0]), int(today_split[1]), int(today_split[2])
 
     post_urls = []
     for i, row in enumerate(values, start=1):
+        # so it doesnt grab the sheets' headers
+        if i == 1:
+            continue
+
         if len(row) < 6:
             continue
         date_added = row[4]
-        date_added.split("-")
-        row_year, row_month, row_day = date_added[0], date_added[1], date_added[2]
+        date_added_split = date_added.split("-")
+        row_year, row_month, row_day = int(date_added_split[0]), int(date_added_split[1]), int(date_added_split[2])
 
         curr_date = datetime(curr_year, curr_month, curr_day)
         row_date = datetime(row_year, row_month, row_day)
