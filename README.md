@@ -43,3 +43,11 @@ __AT Protocol:__ for interacting with BlueSky API.
 
 ## Agentic Process
 
+This project contains two agents, one manages content generation while the other manages the feedback loop.
+
+### Content Generation
+
+The agent comprises of nine individual nodes, each performing one main task along with other, smaller related ones.
+
+__Starter (Node 1):__ Pulls the topic 
+
