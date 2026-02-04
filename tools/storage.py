@@ -43,6 +43,18 @@ def bsky_metrics_to_firestore(metrics: dict):
     return True
 
 # save updated prompts to firestore ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+def bsky_to_firestore_recursive_update(prompt: dict, overrides: dict):
+    
+    for key, value in overrides.items():
+        if isinstance(value, dict) and value:
+            returned = bsky_to_firestore_recursive_update(prompt.get(key, {}), value)
+            prompt[key] = returned
+        else:
+            prompt[key] = overrides[key]
+
+        return prompt
+
+
 # firestore docs: https://firebase.google.com/docs/firestore/manage-data/add-data#python
 def bsky_prompt_changes_to_firestore(dict_video_response: dict, dict_desc_response: dict):
     print("!!REAL!! SAVING PROMPT UPDATES TO FIRESTORE....")
@@ -57,15 +69,12 @@ def bsky_prompt_changes_to_firestore(dict_video_response: dict, dict_desc_respon
     curr_dict_video_prompt = curr_video_snap.to_dict()
     curr_dict_desc_prompt = curr_desc_snap.to_dict()
 
-    for key in dict_video_response.keys():
-        curr_dict_video_prompt[key] = dict_video_response[key]
-
-    for key in dict_desc_response.keys():
-        curr_dict_desc_prompt[key] = dict_desc_response[key]
+    parsed_dict_video_prompt = bsky_to_firestore_recursive_update(curr_dict_video_prompt, dict_video_response)
+    parsed_dict_desc_prompt = bsky_to_firestore_recursive_update(curr_dict_desc_prompt, dict_desc_response)
 
     # remember you cant push a snapshot
-    video_prompt_ref.set(curr_dict_video_prompt)
-    desc_prompt_ref.set(curr_dict_desc_prompt)
+    video_prompt_ref.set(parsed_dict_video_prompt)
+    desc_prompt_ref.set(parsed_dict_desc_prompt)
     
     print("!!REAL!! PROMPT UPDATES SAVED TO FIRESTORE")
     return True
