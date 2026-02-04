@@ -96,10 +96,21 @@ def bsky_to_firestore_recursive_update(prompt: dict, overrides: dict):
         return prompt
 
 # firestore docs: https://firebase.google.com/docs/firestore/manage-data/add-data#python
-def bsky_prompt_changes_to_firestore(dict_video_response: dict, dict_desc_response: dict):
+def bsky_prompt_changes_to_firestore(thread: str):
     print("!!REAL!! SAVING PROMPT UPDATES TO FIRESTORE....")
 
     client = firestore.Client(project=PROJECT_ID)
+
+    prompt_review_ref = client.collection("news_gen_prompt_reviews").document(thread)
+    dict_payload = prompt_review_ref.get().to_dict()
+
+    if dict_payload.get("new_video_prompt", {}):
+        dict_video_response = dict_payload["new_video_prompt"]
+    
+    if dict_payload.get("new_desc_prompt", {}):
+        dict_desc_response = dict_payload["new_desc_prompt"]
+
+
     video_prompt_ref = client.collection("news_gen_prompts").document("robo_anchor_video_prompt")
     desc_prompt_ref = client.collection("news_gen_prompts").document("robo_anchor_desc_prompt")
 

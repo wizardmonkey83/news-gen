@@ -11,6 +11,7 @@ from datetime import date
 from tools.sheets import get_bsky_url
 from tools.engagement import extract_bsky_metrics, summarize_bsky_metrics
 from tools.sentiment import review_bsky_metrics
+from tools.staging import stage_prompts_for_review
 from tools.storage import bsky_metrics_to_firestore, bsky_prompt_changes_to_firestore
 
 
@@ -33,8 +34,14 @@ def reviewer(state: AnalystState):
     dict_video_response, dict_desc_response = review_bsky_metrics(state["post_metrics"])
     return {"dict_video_response": dict_video_response, "dict_desc_response": dict_desc_response}
 
-def updater(state: AnalystState):
-    bsky_prompt_changes_to_firestore(state["dict_video_response"], state["dict_desc_response"])
+def stager(state: AnalystState, config: RunnableConfig):
+    thread_id = config["configurable"].get("thread_id")
+    stage_prompts_for_review(state["post_metric_summary"], state["dict_video_response"], state["dict_desc_response"], thread_id)
+
+
+def updater(state: AnalystState, config: RunnableConfig):
+    thread_id = config["configurable"].get("thread_id")
+    bsky_prompt_changes_to_firestore(thread_id)
 
 
 graph = StateGraph(AnalystState)
@@ -46,16 +53,18 @@ graph.add_node("starter", starter)
 graph.add_node("extracter", extracter)
 graph.add_node("converter", converter)
 graph.add_node("reviewer", reviewer)
+graph.add_node("stager", stager)
 graph.add_node("updater", updater)
 
 graph.add_edge(START, "starter")
 graph.add_edge("starter", "extracter")
 graph.add_edge("extracter", "converter")
 graph.add_edge("converter", "reviewer")
-graph.add_edge("reviewer", "updater")
+graph.add_edge("reviewer", "stager")
+graph.add_edge("stager", "updater")
 graph.add_edge("updater", END)
 
-app = graph.compile(checkpointer=memory)
+app = graph.compile(interrupt_before=["updater"], checkpointer=memory)
 
 if __name__ == "__main__":
     snapshot = app.get_state(config)
