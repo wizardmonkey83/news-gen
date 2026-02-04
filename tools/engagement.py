@@ -1,5 +1,5 @@
 from atproto import Client, AtUri
-from config import BSKY_USERNAME, BSKY_PASSWORD, MOCK_METRICS
+from config import BSKY_USERNAME, BSKY_PASSWORD, MOCK_BSKY_METRICS
 from datetime import datetime
 import time
 from atproto_client.models.app.bsky.feed.defs import ThreadViewPost, BlockedPost, NotFoundPost
@@ -36,11 +36,10 @@ def extract_bsky_replies(thread: str):
             
 
 def extract_bsky_metrics(bsky_post_urls: list):
-    if not MOCK_METRICS:
+    if not MOCK_BSKY_METRICS:
         client = Client()
         client.login(BSKY_USERNAME, BSKY_PASSWORD)
 
-        metrics = []
         for url in bsky_post_urls:
             try:
                 parts = url.split("/")
@@ -70,14 +69,13 @@ def extract_bsky_metrics(bsky_post_urls: list):
 
                 if post_metrics:
                     post_metrics["url"] = url
-                    metrics.append(post_metrics)
 
             except Exception as e:
                 print(f"Error occured: {e}")
                 continue
 
             time.sleep(1)
-        return metrics
+        return post_metrics
 
     else:
 
@@ -99,3 +97,5 @@ def extract_bsky_metrics(bsky_post_urls: list):
             ],
             "url": "https://fake_url.com"
         }
+
+        return post_metrics

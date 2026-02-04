@@ -30,14 +30,14 @@ def desc_to_bucket(description: str, storage_prefix: str):
 
 # saves metrics as json document inside of firestore collection -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # firestore docs: https://firebase.google.com/docs/firestore/manage-data/add-data#python
-def bsky_metrics_to_firestore(metrics: list):
+def bsky_metrics_to_firestore(metrics: dict):
     print("!!REAL!! BSKY METRICS UPLOAD STARTING...")
     # this is fine for now. maybe edit it to be a range.
     today = date.today()
 
     client = firestore.Client(project=PROJECT_ID)
     new_metrics_ref = client.collection("news_gen_post_metrics").document(f"BSKY_week_of_{today}")
-    # this should fulfil the dict requirement....
+
     new_metrics_ref.set({"metrics": metrics})
     print("!!REAL!! BSKY METRICS SAVED TO FIRESTORE")
     return True

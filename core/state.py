@@ -34,7 +34,7 @@ class AgentState(TypedDict):
 
 class AnalystState(TypedDict):
     bsky_post_urls: Optional[list]
-    post_metrics: Optional[list]
+    post_metrics: Optional[dict]
     
     # this needs to be json format? 
     dict_video_response: Optional[dict]

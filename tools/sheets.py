@@ -164,13 +164,13 @@ def get_bsky_url():
     if not values:
         return None
     
-    today = date.today()
+    today = str(date.today())
     today.split("-")
     curr_year, curr_month, curr_day = today[0], today[1], today[2]
 
     post_urls = []
     for i, row in enumerate(values, start=1):
-        if len(row) < 5:
+        if len(row) < 6:
             continue
         date_added = row[4]
         date_added.split("-")

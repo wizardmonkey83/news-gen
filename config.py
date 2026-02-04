@@ -27,7 +27,7 @@ MOCK_DESC = True
 MOCK_SOCIAL = True
 
 # for analyst
-MOCK_METRICS = True
+MOCK_BSKY_METRICS = True
 
 
 LOCAL_DEV = True
