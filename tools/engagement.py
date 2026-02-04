@@ -1,8 +1,13 @@
-from atproto import Client, AtUri
-from config import BSKY_USERNAME, BSKY_PASSWORD, MOCK_BSKY_METRICS
+from atproto import Client
+from config import BSKY_USERNAME, BSKY_PASSWORD, MOCK_BSKY_METRICS, PROJECT_ID, LOCATION, TEXT_MODEL, SUMMARIZE_RAW_POST_METRICS_PROMPT
 from datetime import datetime
 import time
+import json
 from atproto_client.models.app.bsky.feed.defs import ThreadViewPost, BlockedPost, NotFoundPost
+
+from google.cloud import firestore
+from google import genai
+from google.genai import types
 
 def extract_bsky_replies(thread: str):
     # from atproto docs. could not be more confusing
@@ -104,3 +109,20 @@ def extract_bsky_metrics(bsky_post_urls: list):
         }
 
         return post_metrics
+    
+# formats/summarizes the post_metrics into a human friendly format -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+def summarize_bsky_metrics(post_metrics: dict):
+    client = genai.Client(
+        vertexai=True,
+        project=PROJECT_ID,
+        location=LOCATION
+    )
+
+    response = client.model.generate_description(
+        model=TEXT_MODEL,
+        contents=[SUMMARIZE_RAW_POST_METRICS_PROMPT, json.dumps(post_metrics)]
+    )
+
+    post_metric_summary = response.text
+
+    return post_metric_summary

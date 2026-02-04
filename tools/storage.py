@@ -73,6 +73,16 @@ def bsky_metrics_to_firestore(metrics: dict):
     print("!!REAL!! BSKY METRICS SAVED TO FIRESTORE")
     return True
 
+def bsky_metrics_summary_to_firestore(metrics_summary: dict):
+    today = date.today()
+    client = firestore.Client(project=PROJECT_ID)
+
+    new_metrics_summary_ref = client.collection("news_gen_post_metric").document(f"BSKY_week_of_{today}_summary")
+    new_metrics_summary_ref.set({"summary": metrics_summary})
+
+    print("!!REAL!! BSKY METRICS SUMMARY SAVED TO FIRESTORE")
+    return True
+
 # save updated prompts to firestore ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 def bsky_to_firestore_recursive_update(prompt: dict, overrides: dict):
     
@@ -84,7 +94,6 @@ def bsky_to_firestore_recursive_update(prompt: dict, overrides: dict):
             prompt[key] = overrides[key]
 
         return prompt
-
 
 # firestore docs: https://firebase.google.com/docs/firestore/manage-data/add-data#python
 def bsky_prompt_changes_to_firestore(dict_video_response: dict, dict_desc_response: dict):

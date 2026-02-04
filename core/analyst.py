@@ -9,7 +9,7 @@ from datetime import date
 
 
 from tools.sheets import get_bsky_url
-from tools.engagement import extract_bsky_metrics
+from tools.engagement import extract_bsky_metrics, summarize_bsky_metrics
 from tools.sentiment import review_bsky_metrics
 from tools.storage import bsky_metrics_to_firestore, bsky_prompt_changes_to_firestore
 
@@ -20,8 +20,9 @@ def starter(state: AnalystState):
 
 # extracts metrics/engagement from post 
 def extracter(state: AnalystState):
-    metrics = extract_bsky_metrics(state["bsky_post_urls"])
-    return {"post_metrics": metrics}
+    post_metrics = extract_bsky_metrics(state["bsky_post_urls"])
+    post_metric_summary = summarize_bsky_metrics(post_metrics)
+    return {"post_metrics": post_metrics, "post_metric_summary": post_metric_summary}
 
 # saves post_metrics to firestore
 def converter(state: AnalystState):

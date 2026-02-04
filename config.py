@@ -198,6 +198,11 @@ RSS_FEED_ANALYSIS_PROMPT = {
   }
 }
 
+# used for summarizing the raw post_metrics
+SUMMARIZE_RAW_POST_METRICS_PROMPT = {
+    
+}
+
 
 # docs: https://ai.google.dev/gemini-api/docs/structured-output?example=recipes
 class ToneAndComedicDNA(BaseModel):
