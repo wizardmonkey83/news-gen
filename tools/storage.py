@@ -93,7 +93,7 @@ def bsky_to_firestore_recursive_update(prompt: dict, overrides: dict):
         else:
             prompt[key] = overrides[key]
 
-        return prompt
+    return prompt
 
 # firestore docs: https://firebase.google.com/docs/firestore/manage-data/add-data#python
 def bsky_prompt_changes_to_firestore(thread: str):

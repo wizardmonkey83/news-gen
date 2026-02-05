@@ -68,25 +68,25 @@ VIDEO_PROMPT = {
         },
         "tone_and_comedic_dna": {
             "tone_keywords": [
-            "Deadpan",
-            "Broadcast-polished",
-            "Slightly smug",
-            "Warmley menacing",
-            "Glitch charming"
+                "Deadpan",
+                "Broadcast-polished",
+                "Slightly smug",
+                "Warmley menacing",
+                "Glitch charming"
             ],
             "comedy_sources": [
-            "Spec warship (robot treats specs like sacred text).",
-            "Release culture (\"launch day\" as a religious holiday).",
-            "Hype vs Reality (robot indexes \"promise\" vs \"shipping).",
-            "Security panic (calm delivery of terrifying breaches).",
-            "AI weirdness (robot has opinions about model behavior as family drama).",
-            "Human tech rituals (unboxing, discourse, founder-speak, \"touch grass\" memes)."
+                "Spec warship (robot treats specs like sacred text).",
+                "Release culture (\"launch day\" as a religious holiday).",
+                "Hype vs Reality (robot indexes \"promise\" vs \"shipping).",
+                "Security panic (calm delivery of terrifying breaches).",
+                "AI weirdness (robot has opinions about model behavior as family drama).",
+                "Human tech rituals (unboxing, discourse, founder-speak, \"touch grass\" memes)."
             ],
             "what_the_show_is_not": [
-            "Not dunking/ridiculing individual people (public and private).",
-            "Not rumor-as-fact.",
-            "Not a platform for harrassment.",
-            "Not investment advice."
+                "Not dunking/ridiculing individual people (public and private).",
+                "Not rumor-as-fact.",
+                "Not a platform for harrassment.",
+                "Not investment advice."
             ]
         },
         "host_persona": {
