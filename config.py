@@ -20,18 +20,18 @@ ELEVEN_LABS_API_KEY = config("ELEVEN_LABS_API_KEY")
 SYNC_LABS_API_KEY = config("SYNC_LABS_API_KEY")
 
 TEXT_MODEL = "gemini-2.5-pro"
-VIDEO_MODEL = "veo-3.1-fast-generate-preview"
+VIDEO_MODEL = "veo-3.1-generate-preview"
 
 # for agent
 MOCK_NEWS = False
-MOCK_VIDEO = True
-MOCK_DESC = True
+MOCK_VIDEO = False
+MOCK_DESC = False
 MOCK_SOCIAL = True
 # simple videos are videos where both audio and visuals are created together. as opposed to generating them seperately, and splicing together.
-SIMPLE_VIDEO = True
+SIMPLE_VIDEO = False
 
 # for analyst
-MOCK_BSKY_METRICS = False
+MOCK_BSKY_METRICS = True
 
 
 LOCAL_DEV = True
@@ -39,7 +39,7 @@ LOCAL_FIRESTORE_METRICS = True
 
 # for agent
 MULTIPLE_VIDEO = False
-RSS_FEED = True
+RSS_FEED = False
 
 METRIC_REVIEW_PROMPT = {
     "analyst_role": {
@@ -92,30 +92,50 @@ TEXT_TO_SPEECH_GUIDELINES_PROMPT = {
     ]
 }
 
+VISUAL_SCRIPT_NEGATIVE_PROMPT = (
+    "human, real person, human face, skin, flesh, lips, mouth, teeth, tongue, "
+    "talking, speaking, open mouth, "
+    "moving camera, handheld camera, camera shake, zoom, pan, tilt, dolly, "
+    "text, words, letters, chyron, lower third, headlines, subtitles, watermark, logo, "
+    "newsroom staff, people in background, audience, crowds, "
+    "two robots, multiple subjects, gestures, waving, "
+    "morphing, melting, glitching, distortion"
+)
+
 VISUAL_SCRIPT_GUIDELINES_PROMPT = {
     "visual_prompt": {
-        "core_identity_inheritance": {
-            "show_concept": "A traditional tech news broadcast hosted by a robot who thinks 'AI safety' is a firmware setting.",
-            "atmosphere": "Dark, slick, high-contrast tech newsroom. Cool blues, dark greys, and minimal lighting.",
-            "subject": "ANCHOR-9: A sleek, industrial-designed robot with a polished chassis (matte grey/black) and status lights."
+        "technical_specifications": {
+            "medium": "Hyper-realistic 3D Render (Unreal Engine 5), Cinemagraph style.",
+            "render_quality": "8k resolution, raytracing, matte texture rendering.",
+            "camera_behavior": "TRIPOD LOCKED. COMPLETELY STATIC. NO ZOOM. NO PAN."
         },
         "composition_rules": {
-            "framing": "Medium shot (chest up).",
-            "alignment": "STRICT RULE OF THIRDS: The robot MUST be positioned on the RIGHT vertical third line.",
-            "eye_line": "The robot's eyes (or primary optical sensor) must be located exactly at the intersection of the RIGHT vertical third and the TOP horizontal third line.",
-            "negative_space": "The left two-thirds of the screen should be the empty newsroom background (out of focus) to allow for text overlays later."
+            "layout": "Split-screen composition. The Right 40% is the Subject. The Left 60% is EMPTY NEGATIVE SPACE.",
+            "subject_position": "The robot is seated on the far RIGHT side of the frame.",
+            "negative_space": "The entire left side of the screen is a dark, empty void or blank monitor. ABSOLUTELY NO TEXT or GRAPHICS in this space."
         },
-        "motion_restrictions": [
-            "CRITICAL: ABSOLUTELY NO MOTION. This must look like a still photograph.",
-            "The robot must be completely frozen. No servo movement. No head tilting. No blinking.",
-            "The background must be completely static. No moving lights, no scrolling tickers, no fan movement. NO TEXT WHATSOEVER.",
-            "The output should effectively be a high-fidelity still image rendered as a video file."
-        ],
-        "camera_settings": {
-            "type": "Locked tripod shot.",
-            "lens": "85mm equivalent (flattering portrait focal length).",
-            "depth_of_field": "Shallow depth of field. The robot is in sharp focus; the background is soft and blurred."
-        }
+        "subject_design": {
+            "identity": "ANCHOR-9: An industrial android with a non-human, geometric head.",
+            "material": "Matte grey metal chassis with brushed steel accents.",
+            "facial_features": [
+                "Eyes: Two glowing status lights (blue).",
+                "Mouth: A static, mechanical panel gap. COMPLETELY MOTIONLESS.",
+                "Expression: Neutral, cold, unfeeling."
+            ],
+            "orientation": "Facing DIRECTLY forward at the camera. Symmetric posture."
+        },
+        "environment": {
+            "setting": "Minimalist late-night talk show set. Dark, moody lighting.",
+            "props": "A simple, clean desk. No papers, no mugs, no microphones.",
+            "lighting": "Rim lighting on the robot to separate it from the background. Deep shadows."
+        },
+        "strict_negatives": [
+            "NO HUMANS or human skin tones.",
+            "NO TEXT, chyrons, tickers, or headlines.",
+            "NO MOVEMENT of any kind.",
+            "NO MOUTH OPENING.",
+            "NO HANDS visible."
+        ]
     }
 }
 

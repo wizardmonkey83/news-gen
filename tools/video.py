@@ -5,7 +5,7 @@ from google import genai
 from google.genai import types
 from google.cloud import storage
 from .sync import generate_signed_url
-from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, PROJECT_ID, LOCATION, LOCAL_DEV, MULTIPLE_VIDEO, VISUAL_EXTENSION_PROMPT, SIMPLE_VIDEO
+from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, PROJECT_ID, LOCATION, LOCAL_DEV, MULTIPLE_VIDEO, VISUAL_EXTENSION_PROMPT, SIMPLE_VIDEO, VISUAL_SCRIPT_NEGATIVE_PROMPT
 import math
 
 client = genai.Client(
@@ -29,10 +29,20 @@ def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: floa
         else:
             num_extensions = math.ceil((audio_length - 8)/7)
 
+        # reference image docs: https://ai.google.dev/gemini-api/docs/video?example=dialogue#reference-images
+        visual_reference_image = types.Image(
+            gcs_uri=f"gs://{storage_prefix}/{BUCKET_NAME}/news-gen-anchor9-reference.png",
+            mime_type="image/png"
+        )
 
         operation = client.models.generate_videos(
             model=VIDEO_MODEL,
             prompt=visual_prompt,
+            config=types.GenerateVideosConfig(
+                reference_images=[visual_reference_image],
+                negative_prompt=VISUAL_SCRIPT_NEGATIVE_PROMPT,
+                generate_audio=False,
+            ),
         )
 
         while not operation.done:
@@ -50,7 +60,7 @@ def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: floa
         bucket = storage_client.bucket(BUCKET_NAME)
         blob = bucket.blob(storage_path)
 
-        if num_extensions:
+        if num_extensions and num_extensions > 0:
             print(f"!!REAL!! EXTENDING VIDEO {num_extensions}")
             # need to directly upload to bucket due to video length
             bucket_uri = f"gs://{BUCKET_NAME}/{storage_prefix}"

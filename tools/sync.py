@@ -46,6 +46,8 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
         local_synced_video_path = temp_synced_video.name
 
     try:
+        print("!!REAL!! SYNCING VIDEO AND AUDIO...")
+
         storage_client = storage.Client(project=PROJECT_ID)
         bucket = storage_client.bucket(BUCKET_NAME)
 
@@ -63,16 +65,18 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
             audio=local_audio_path
         )
 
-        while sync_operation.status != "COMPLETED":
+        while sync_operation.status not in ["COMPLETED", "FAILED"]:
+            print(f"!!REAL!! SYNC_OPERATION STATUS: {sync_operation.status}")
             time.sleep(10)
             sync_operation = sync_client.generations.get(sync_operation.id)
 
         if sync_operation.error:
-            print(f"Error during sync_operation: {sync_operation.error}")
-            return
+            raise Exception(f"Error during sync_operation: {sync_operation.error}")
         
         # get the actual file. didnt know requests did this.
         sync_operation_response = requests.get(sync_operation.output_url)
+
+        print("!!REAL!! VISUAL AND AUDIO SYNCED")
 
         # iterates over chunks to avoid overloading ram by loading it all at once
         with open(local_synced_video_path, 'wb') as temp_synced_video:
@@ -104,6 +108,8 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
 
         signed_url = generate_signed_url(BUCKET_NAME, f"{storage_prefix}/video.mp4")
 
+        print("!!REAL!! COMPLETE VIDEO SAVED TO BUCKET")
+
         return signed_url
 
     except Exception as e:
@@ -111,14 +117,14 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
         raise Exception
 
     finally:
-        if os.path.exists(local_visual_path):
+        if local_visual_path and  os.path.exists(local_visual_path):
             os.remove(local_visual_path)
 
-        if os.path.exists(local_audio_path):
+        if local_audio_path and os.path.exists(local_audio_path):
             os.remove(local_audio_path)
 
-        if os.path.exists(local_synced_video_path):
+        if local_synced_video_path and os.path.exists(local_synced_video_path):
             os.remove(local_synced_video_path)
         
-        if os.path.exists(local_complete_video_path):
+        if local_complete_video_path and os.path.exists(local_complete_video_path):
             os.remove(local_complete_video_path)

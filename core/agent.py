@@ -36,7 +36,7 @@ def collect_news_and_summary(state: AgentState):
     news_summary = result["summary"]
     sources = result["sources"]
 
-    audio_script = generate_text_to_speech_script(state["news_summary"], state["num_extensions"])
+    audio_script = generate_text_to_speech_script(news_summary, state["num_extensions"])
 
     return {"news_summary": news_summary, "sources": sources, "audio_script": audio_script}
 
@@ -101,7 +101,7 @@ graph = StateGraph(AgentState)
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
 # thread_id is the slot the state is saved to
-config = {"configurable": {"thread_id": f"2026-02-03+test14993219191"}}
+config = {"configurable": {"thread_id": f"2026-02-06_test_1934743728"}}
 
 graph.add_node("load_prompts_and_get_topic", load_prompts_and_get_topic)
 graph.add_node("collect_news_and_summary", collect_news_and_summary)
