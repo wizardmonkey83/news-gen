@@ -71,7 +71,7 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
             sync_operation = sync_client.generations.get(sync_operation.id)
 
         if sync_operation.error:
-            raise Exception(f"Error during sync_operation: {sync_operation.error}")
+            raise Exception(f"Error during sync_operation: {sync_operation.error}. Status code: {sync_operation.error_code}.")
         
         # get the actual file. didnt know requests did this.
         sync_operation_response = requests.get(sync_operation.output_url)

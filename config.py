@@ -105,107 +105,63 @@ VISUAL_SCRIPT_NEGATIVE_PROMPT = (
 VISUAL_SCRIPT_GUIDELINES_PROMPT = {
     "visual_prompt": {
         "technical_specifications": {
-            "medium": "Hyper-realistic 3D Render (Unreal Engine 5), Cinemagraph style.",
-            "render_quality": "8k resolution, raytracing, matte texture rendering.",
-            "camera_behavior": "TRIPOD LOCKED. COMPLETELY STATIC. NO ZOOM. NO PAN."
+            "medium": "Cinemagraph from a high-fidelity still photograph.",
+            "render_quality": "Unreal Engine 5 style, 8k resolution, crisp detail.",
+            "camera_behavior": "EXTREME STATIC. The camera must act like a TRIPOD taking a PHOTO. ZERO MOVEMENT. NO PAN. NO ZOOM."
         },
         "composition_rules": {
-            "layout": "Split-screen composition. The Right 40% is the Subject. The Left 60% is EMPTY NEGATIVE SPACE.",
+            "layout": "Split-screen composition. Right 40% is the Subject. Left 60% is Negative Space.",
             "subject_position": "The robot is seated on the far RIGHT side of the frame.",
-            "negative_space": "The entire left side of the screen is a dark, empty void or blank monitor. ABSOLUTELY NO TEXT or GRAPHICS in this space."
+            "negative_space": "The left side is a BLURRED DEPTH-OF-FIELD NEWSROOM BACKGROUND. It must match the lighting and blue tones of the reference image. It is NOT black. It is a studio background."
         },
         "subject_design": {
             "identity": "ANCHOR-9: An industrial android with a non-human, geometric head.",
             "material": "Matte grey metal chassis with brushed steel accents.",
             "facial_features": [
                 "Eyes: Two glowing status lights (blue).",
-                "Mouth: A static, mechanical panel gap. COMPLETELY MOTIONLESS.",
-                "Expression: Neutral, cold, unfeeling."
+                "Mouth: SEALED SHUT. A static horizontal panel line. It MUST NOT MOVE. It must look like a closed vent.",
+                "Expression: Frozen, stoic, object-like."
             ],
-            "orientation": "Facing DIRECTLY forward at the camera. Symmetric posture."
+            "orientation": "Facing DIRECTLY forward. Symmetric posture."
         },
         "environment": {
-            "setting": "Minimalist late-night talk show set. Dark, moody lighting.",
-            "props": "A simple, clean desk. No papers, no mugs, no microphones.",
-            "lighting": "Rim lighting on the robot to separate it from the background. Deep shadows."
+            "setting": "A high-tech news broadcast studio. Blue and amber studio lights in the background.",
+            "props": "A polished wooden anchor desk in the foreground.",
+            "consistency": "The background must match the provided reference image exactly."
         },
         "strict_negatives": [
-            "NO HUMANS or human skin tones.",
-            "NO TEXT, chyrons, tickers, or headlines.",
-            "NO MOVEMENT of any kind.",
-            "NO MOUTH OPENING.",
-            "NO HANDS visible."
+            "NO HUMANS",
+            "NO MOVING MOUTH",
+            "NO TALKING",
+            "NO CAMERA SHAKE",
+            "NO BLACK VOID BACKGROUND"
         ]
     }
 }
 
-VIDEO_PROMPT = {
-    "video_prompt": {
-        "show_concept": "This show is a traditional tech news broadcast hosted by a robot who thinks product launches are emotional events and \"AI safety\" is a firmware setting.",
-        "audience": {
-            "primary": "Tech-curious viewers who want quick, digestible updates (AI, gadgets, platforms, startups, cybersecurity). People who like desk-style satire and internet culture commentary.",
-            "secondary": "Builders, creatiors  and founders who watch tech news as a routine. Social viewers who share clips with \"this is exactly what it feels like\" energy.",
-            "platform_fit": "Short form content (YouTube Shorts, Instagram Reels, TikTok, X, Bluesky)."
+
+VISUAL_EXTENSION_PROMPT = {
+    "visual_extension_prompt": {
+        "task_objective": "Freeze the frame. Extend the video with ZERO visual changes.",
+        "technical_specifications": {
+            "camera_behavior": "TRIPOD LOCKED. Do not move the camera."
         },
-        "tone_and_comedic_dna": {
-            "tone_keywords": [
-                "Deadpan",
-                "Broadcast-polished",
-                "Slightly smug",
-                "Warmley menacing",
-                "Glitch charming"
-            ],
-            "comedy_sources": [
-                "Spec warship (robot treats specs like sacred text).",
-                "Release culture (\"launch day\" as a religious holiday).",
-                "Hype vs Reality (robot indexes \"promise\" vs \"shipping).",
-                "Security panic (calm delivery of terrifying breaches).",
-                "AI weirdness (robot has opinions about model behavior as family drama).",
-                "Human tech rituals (unboxing, discourse, founder-speak, \"touch grass\" memes)."
-            ],
-            "what_the_show_is_not": [
-                "Not dunking/ridiculing individual people (public and private).",
-                "Not rumor-as-fact.",
-                "Not a platform for harrassment.",
-                "Not investment advice."
+        "composition_rules": {
+            "layout": "Match the split-screen newsroom layout.",
+            "negative_space": "Keep the left side as the blurry newsroom studio. Do not turn it black."
+        },
+        "subject_continuity": {
+            "identity": "ANCHOR-9",
+            "motion_restrictions": [
+                "The robot acts like a statue.",
+                "The mouth line must remain SEALED."
             ]
         },
-        "host_persona": {
-            "name": "ANCHOR-9 (alternatives: \"A.N.N.A.\", \"DESK UNIT\", \"R-CHYRON\")",
-            "summary": "ANCHOR-9 is optimized for reporting on technology, its \"home-turf\", bit it still can't grasp why humans attach identify to operating systems, phone colors, or CEO tweets."
-        },
-        "voice_and_delivery": {
-            "pace": "Crisp, tech-newsroom fast.",
-            "emotion": "simulated via status lights and tiny servo beats.",
-            "tics_and_catchphrases": [
-            "According to verified inputs...",
-            "this has been classifies as: Update Availible",
-            "humans call this 'innovation'. i call it 'versioning'.",
-            "reminder: you are the product. (Allegedly)"
-            ],
-            "core_comedy_flaws": [
-            "Over values metrics, benchmarks, and \"efficiency\".",
-            "Treats human preferences as bugs.",
-            "Thinks every problems can be solved with a patch.",
-            "Occasionally reveals it is too personally invested in AI news."
-            ],
-            "robot_rules": [
-            "Must sound like a legitimate tech anchor.",
-            "Must prioritize accuraccy over jokes.",
-            "Must add one \"robot perspective\" per story.",
-            "Must never admit it read the comments (even when it did)."
-            ]
-        },
-        "visual_and_set_design": {
-            "primary_shot": "Robot at desk, centered. Over the shoulder \"story-window\"",
-            "on_screen_graphics": "None. There should be no graphics on screen.",
-            "motion_and_efficiency": "Locked camera. Reusable loops."
-        },
-        "restrictions": [
-            "Do not show humaan hands or human faces.",
-            "Do not move the camera.",
-            "Do not include readable text on the screen.",
-            "DO not include any sort of writing, drawing, or content that could resemble text."
+        "strict_negatives": [
+            "NO MOVEMENT",
+            "NO AUDIO",
+            "NO TALKING",
+            "NO TEXT"
         ]
     }
 }
@@ -232,34 +188,6 @@ DESCRIPTION_PROMPT = {
     }
 }
 
-VISUAL_EXTENSION_PROMPT = {
-
-}
-
-# you'll probably need to pass news_summary as context. hopefully not. 
-VIDEO_EXTENSION_PROMPT = {
-  "video_extension_prompt": {
-    "objective": "Extend the existing video clip seamlessly. The output must visually and audibly match the preceding frames without any jump cuts or style shifts.",
-    "visual_continuity": {
-      "setting": "Maintain the exact same broadcast desk environment. Do not change the lighting, background graphics, or camera angle.",
-      "subject": "Keep ANCHOR-9 centered and consistent. Do not alter the robot's design, colors, or physical dimensions.",
-      "camera_behavior": "Strictly locked camera. No zooming, panning, or handheld shake. The shot must remain static to preserve the 'news broadcast' aesthetic."
-    },
-    "audio_and_performance_continuity": {
-      "voice_consistency": "Maintain the established voice print: crisp, tech-newsroom fast, and authoritative. Do not change pitch or speed. Do not change any aspect of the previouly existing voice. ",
-      "audio": "The audio must be a direct continuation of the input video's audio stream. Do not change the speaker's timber, pitch, or accent.",
-      "tone": "Deadpan, slightly smug, and robotic. Continue the delivery with 'simulated emotion' (tiny servo beats) rather than human expressiveness.",
-      "pacing": "Ensure the speech flows naturally from the end of the previous clip. No pauses or gaps at the connection point."
-    },
-    "action_instructions": "The robot anchor continues delivering the news report. Movement should be minimal and efficient—limited to small head tilts, status light blinks, or slight hand gestures typical of a news anchor. No sudden or exaggerated motions.",
-    "restrictions": [
-      "Do not introduce new characters or human hands.",
-      "Do not change the aspect ratio or resolution.",
-      "Do not allow the background graphics to 'drift' or morph randomly.",
-      "Do not change any aspect of the voice used in previous videos."
-    ]
-  }
-}
 
 # used for summarizing rss feed results
 RSS_FEED_ANALYSIS_PROMPT = {

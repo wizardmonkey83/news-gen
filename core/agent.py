@@ -1,4 +1,4 @@
-from config import VIDEO_PROMPT, DESCRIPTION_PROMPT, PROJECT_ID, LOCAL_DEV
+from config import DESCRIPTION_PROMPT, PROJECT_ID, LOCAL_DEV
 from tools.social import post_to_bsky
 from tools.news import collect_news
 from tools.video import generate_visuals
@@ -101,7 +101,7 @@ graph = StateGraph(AgentState)
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
 # thread_id is the slot the state is saved to
-config = {"configurable": {"thread_id": f"2026-02-06_test_1934743728"}}
+config = {"configurable": {"thread_id": f"2026-02-06_test_2923920001393291"}}
 
 graph.add_node("load_prompts_and_get_topic", load_prompts_and_get_topic)
 graph.add_node("collect_news_and_summary", collect_news_and_summary)
