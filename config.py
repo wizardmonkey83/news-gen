@@ -16,6 +16,8 @@ SPREADSHEET_ID = config("SPREADSHEET_ID")
 BSKY_USERNAME = config("BSKY_USERNAME")
 BSKY_PASSWORD = config("BSKY_PASSWORD")
 
+ELEVEN_LABS_API_KEY = config("ELEVEN_LABS_API_KEY")
+SYNC_LABS_API_KEY = config("SYNC_LABS_API_KEY")
 
 TEXT_MODEL = "gemini-2.5-pro"
 VIDEO_MODEL = "veo-3.1-fast-generate-preview"
@@ -25,6 +27,8 @@ MOCK_NEWS = False
 MOCK_VIDEO = True
 MOCK_DESC = True
 MOCK_SOCIAL = True
+# simple videos are videos where both audio and visuals are created together. as opposed to generating them seperately, and splicing together.
+SIMPLE_VIDEO = True
 
 # for analyst
 MOCK_BSKY_METRICS = False
@@ -149,6 +153,10 @@ DESCRIPTION_PROMPT = {
             "\"Security patch deployed for the internet. Please restart your modems and your expectations.\""
         ]
     }
+}
+
+VISUAL_EXTENSION_PROMPT = {
+
 }
 
 # you'll probably need to pass news_summary as context. hopefully not. 

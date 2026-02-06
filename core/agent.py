@@ -1,7 +1,8 @@
 from config import VIDEO_PROMPT, DESCRIPTION_PROMPT, PROJECT_ID, LOCAL_DEV
 from tools.social import post_to_bsky
 from tools.news import collect_news
-from tools.video import generate_video, generate_description
+from tools.video import generate_video
+from tools.description import generate_description
 from tools.notification import send_request
 from tools.sheets import get_topic, mark_complete, store_sources
 from tools.storage import desc_to_bucket, load_prompts_to_config

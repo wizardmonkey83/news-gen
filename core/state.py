@@ -13,7 +13,11 @@ class AgentState(TypedDict):
     # i think dict is correct
     sources: dict[str]
 
-    # creation
+    # audio creation
+    audio_script: Optional[str]
+    audio_length: Optional[float]
+
+    # visuals creation
     script: Optional[str]
     video_prompt: Optional[str]
 
