@@ -27,7 +27,11 @@ def generate_description(gs_link: str, prompt: str):
         return "Wow, this video is super awesome and you should totally watch it!"
     
 # creates script to feed to tts audio generation --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-def generate_text_to_speech_script(news_summary: str):
+def generate_text_to_speech_script(news_summary: str, num_extensions: str):
+
+    target_length = (num_extensions * 7) + 8
+
+    TEXT_TO_SPEECH_GUIDELINES_PROMPT["target_duration"] = str(target_length)
 
     response = client.models.generate_content(
         model=TEXT_MODEL, 
