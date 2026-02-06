@@ -45,10 +45,6 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
     with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_synced_video:
         local_synced_video_path = temp_synced_video.name
 
-    # will use later to crop videos if they get too long
-    tail_secs = visual_length - audio_length
-    max_tail_secs = 2.0
-
     try:
         storage_client = storage.Client(project=PROJECT_ID)
         bucket = storage_client.bucket(BUCKET_NAME)
@@ -86,6 +82,10 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
         load_synced_video = VideoFileClip(local_synced_video_path)
 
         # in order to avoid too much blank spac at the end of the video
+        visual_length = VideoFileClip(local_visual_path).duration
+        tail_secs = visual_length - audio_length
+        max_tail_secs = 2.0
+
         if tail_secs > max_tail_secs:
             cut_visual = load_synced_video.subclipped(0, (audio_length + max_tail_secs))
         else:
