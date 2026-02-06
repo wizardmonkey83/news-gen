@@ -2,7 +2,7 @@ from config import VIDEO_PROMPT, DESCRIPTION_PROMPT, PROJECT_ID, LOCAL_DEV
 from tools.social import post_to_bsky
 from tools.news import collect_news
 from tools.video import generate_visuals
-from tools.description import generate_description
+from tools.text import generate_description, generate_text_to_speech_script, generate_visual_script
 from tools.notification import send_request
 from tools.audio import generate_audio_snippet
 from tools.sheets import get_topic, mark_complete, store_sources
@@ -30,13 +30,15 @@ def load_prompts_and_get_topic(state: AgentState):
         storage_prefix = f"{topic}_{date.today()}"
     return {"topic": topic, "num_extensions": num_extensions, "storage_prefix": storage_prefix}
 
-# collects news sources and creates a summary
+# collects news sources and creates a summary. also creates audio_script
 def collect_news_and_summary(state: AgentState):
     result = collect_news(state["topic"])
     news_summary = result["summary"]
     sources = result["sources"]
 
-    return {"news_summary": news_summary, "sources": sources}
+    audio_script = generate_text_to_speech_script(state["news_summary"])
+
+    return {"news_summary": news_summary, "sources": sources, "audio_script": audio_script}
 
 # saves sources to google sheets
 def save_news_sources_to_sheets(state: AgentState):
@@ -51,7 +53,12 @@ def create_audio_for_video(state: AgentState):
 
 # creates visuals
 def create_visual_for_video(state: AgentState):
-    contents = generate_visuals(state["visual_script"], state["storage_prefix"], state["audio_length"])
+    # first create visual script
+    visual_script = generate_visual_script(state["audio_script"])
+    
+    # then create visuals
+    contents = generate_visuals(visual_script, state["storage_prefix"], state["audio_length"])
+
     gs_link = contents["gs_link"]
     visual_length = contents["visuals_length"]
     return {"gs_link": gs_link, "visual_length": visual_length}

@@ -62,7 +62,11 @@ METRIC_REVIEW_PROMPT = {
     "output_requirements": "Return a JSON object containing specific, actionable instructions to update the 'VideoPromptModel' (the script/visuals) and 'DescriptionPromptModel' (the social post text) for the next cycle."
 }
 
-TEXT_TO_SPEECH_SCRIPT = {
+TEXT_TO_SPEECH_GUIDELINES_PROMPT = {
+    
+}
+
+VISUAL_SCRIPT_GUIDELINES_PROMPT = {
     
 }
 

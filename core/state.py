@@ -37,6 +37,8 @@ class AgentState(TypedDict):
 
     post_url: Optional[str]
 
+
+# feedback state ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class AnalystState(TypedDict):
     bsky_post_urls: Optional[list]
     post_metrics: Optional[dict]
