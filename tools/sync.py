@@ -12,7 +12,14 @@ from sync.common import Audio, GenerationOptions, Video
 # splices together the visual and audio files to create a video --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # synclabs POST docs: https://docs.sync.so/api-reference/api/generate-api/create-with-files
 # synclabs GET docs: https://docs.sync.so/api-reference/api/generate-api/get
+# moviepy docs: https://zulko.github.io/moviepy/index.html
 def align_visual_and_audio(gs_link: str, visual_duration: float, audio_duration: float, storage_prefix: str):
+
+    # to avoid UnboundLocalErrors in the finally block
+    local_visual_path = None
+    local_audio_path = None
+    local_synced_video_path = None
+    local_complete_video_path = None
 
     with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_visual:
         local_visual_path = temp_visual.name
@@ -45,7 +52,7 @@ def align_visual_and_audio(gs_link: str, visual_duration: float, audio_duration:
             audio=local_audio_path
         )
 
-        while sync_operation.get("status", "") == "PENDING":
+        while sync_operation.status != "COMPLETED":
             time.sleep(10)
             sync_operation = sync_client.generations.get(sync_operation.id)
 
@@ -54,14 +61,18 @@ def align_visual_and_audio(gs_link: str, visual_duration: float, audio_duration:
             return
         
         # get the actual file. didnt know requests did this.
-        sync_operation_response = requests.get(sync_operation.outputUrl)
-        temp_synced_video.write(sync_operation_response)
+        sync_operation_response = requests.get(sync_operation.output_url)
+
+        # iterates over chunks to avoid overloading ram by loading it all at once
+        with open(local_synced_video_path, 'wb') as temp_synced_video:
+            for chunk in sync_operation_response.iter_content(chunk_size=1024):
+                temp_synced_video.write(chunk)
 
         load_synced_video = VideoFileClip(local_synced_video_path)
 
         # in order to avoid too much blank spac at the end of the video
         if tail_secs > max_tail_secs:
-            cut_visual = load_synced_video.subclipped(0, (visual_duration - max_tail_secs))
+            cut_visual = load_synced_video.subclipped(0, (audio_duration + max_tail_secs))
         else:
             cut_visual = load_synced_video
         

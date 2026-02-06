@@ -15,13 +15,12 @@ client = ElevenLabs(
 def generate_audio_snippet(audio_text: str, storage_prefix: str):
     print("!!REAL!! GENERATING AUDIO")
 
+    local_audio_path = None
+
     storage_client = storage.Client(project=PROJECT_ID)
     storage_path = f"{storage_prefix}/audio.mp3"
     bucket = storage_client.bucket(BUCKET_NAME)
     blob = bucket.blob(storage_path)
-
-    with tempfile.NamedTemporaryFile(suffix=".mp4", mode="wb", delete=False) as temp_audio:
-        local_audio_path = temp_audio.name
 
     try:
         audio = client.text_to_speech.convert(
@@ -31,7 +30,10 @@ def generate_audio_snippet(audio_text: str, storage_prefix: str):
             text=audio_text,
         )
 
-        local_audio_path.write(audio)
+        with tempfile.NamedTemporaryFile(suffix=".mp3", mode="wb", delete=False) as temp_audio:
+            local_audio_path = temp_audio.name
+            for chunk in audio:
+                temp_audio.write(chunk)
 
         blob.upload_from_filename(local_audio_path)
 
