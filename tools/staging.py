@@ -25,4 +25,3 @@ def stage_prompts_for_review(metrics_summary: str, dict_video_response: dict, di
     new_staging_reviews_ref.set(payload)
 
     return True
-

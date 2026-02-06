@@ -104,4 +104,3 @@ def post_to_bsky(description: str, storage_prefix: str):
         finally:
             if os.path.exists(local_video_path):
                 os.remove(local_video_path)
-

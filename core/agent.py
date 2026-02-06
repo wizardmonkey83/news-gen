@@ -1,10 +1,12 @@
 from config import VIDEO_PROMPT, DESCRIPTION_PROMPT, PROJECT_ID, LOCAL_DEV
 from tools.social import post_to_bsky
 from tools.news import collect_news
-from tools.video import generate_video
+from tools.video import generate_visuals
 from tools.description import generate_description
 from tools.notification import send_request
+from tools.audio import generate_audio_snippet
 from tools.sheets import get_topic, mark_complete, store_sources
+from tools.sync import sync_visual_and_audio
 from tools.storage import desc_to_bucket, load_prompts_to_config
 from core.state import AgentState
 
@@ -16,10 +18,11 @@ from datetime import date
 import random
 
 # gets topic from google sheet
-def starter(state: AgentState):
+def load_prompts_and_get_topic(state: AgentState):
     print("WAKING UP....")
     load_prompts_to_config()
     topic, num_extensions = get_topic()
+
     if LOCAL_DEV:
         num = random.randint(0, 1000)
         storage_prefix = f"{topic}_{num}"
@@ -28,7 +31,7 @@ def starter(state: AgentState):
     return {"topic": topic, "num_extensions": num_extensions, "storage_prefix": storage_prefix}
 
 # collects news sources and creates a summary
-def editor(state: AgentState):
+def collect_news_and_summary(state: AgentState):
     result = collect_news(state["topic"])
     news_summary = result["summary"]
     sources = result["sources"]
@@ -36,49 +39,52 @@ def editor(state: AgentState):
     return {"news_summary": news_summary, "sources": sources}
 
 # saves sources to google sheets
-def archiver(state: AgentState):
+def save_news_sources_to_sheets(state: AgentState):
     sources = state["sources"]
     store_sources(sources)
     # may want to include an interrupt here to allow source editing
 
-# creates video
-def director(state: AgentState):
-    # i think this is sufficient. theres not really a need to make a gemini call here
-    prompt = f"""
-        Create a detailed video on this topic: {state["topic"]}. This is a summary of news gathered on the topic, use it for context: {state["news_summary"]} 
-        Use this for generation guidelines: {VIDEO_PROMPT}
-    """
-    
-    contents = generate_video(prompt, state["storage_prefix"], state["num_extensions"])
-    gs_link = contents["gs_link"]
-    video_url = contents["video_url"]
+# handles audio creation
+def create_audio_for_video(state: AgentState):
+    audio_length = generate_audio_snippet(state["audio_script"], state["storage_prefix"])
+    return {"audio_length": audio_length}
 
-    return {"video_url": video_url, "gs_link": gs_link}
+# creates visuals
+def create_visual_for_video(state: AgentState):
+    contents = generate_visuals(state["visual_script"], state["storage_prefix"], state["audio_length"])
+    gs_link = contents["gs_link"]
+    visual_length = contents["visuals_length"]
+    return {"gs_link": gs_link, "visual_length": visual_length}
+
+# syncs audio and visuals.
+def connect_visual_and_audio_for_video(state: AgentState):
+    signed_url = sync_visual_and_audio(state["visual_length"], state["audio_length"], state["storage_prefix"])
+    return {"video_url": signed_url}
 
 # creates video description
-def writer(state: AgentState):
+def create_post_description_for_video(state: AgentState):
     gs_link = state["gs_link"]
     post_description = generate_description(gs_link, DESCRIPTION_PROMPT)
     return {"post_description": post_description}
 
-# saves video and post description to newly created google drive folder
-def saver(state: AgentState):
+# saves description to bucket
+def save_post_description(state: AgentState):
     desc_to_bucket(state["post_description"], state["storage_prefix"])
 
 # sends approve/reject email 
-def notifier(state: AgentState, config: RunnableConfig):
-    video_url = state["video_url"]
+def send_approval_email(state: AgentState, config: RunnableConfig):
+    visuals_url = state["visuals_url"]
     post_description = state["post_description"]
     thread_id = config["configurable"].get("thread_id")
-    send_request(video_url, post_description, thread_id)
+    send_request(visuals_url, post_description, thread_id)
 
 # once video is approved for publishing
-def publisher(state: AgentState):
+def publish_video_and_description(state: AgentState):
     post_url = post_to_bsky(state["post_description"], state["storage_prefix"])
     return {"post_url": post_url}
 
 # marks the topic in the google sheet as complete
-def cleaner(state: AgentState):
+def mark_topic_complete(state: AgentState):
     mark_complete(state["post_url"])
     # no need for this :)
     return {"is_complete": True}
@@ -90,29 +96,33 @@ memory = FirestoreSaver(project_id=PROJECT_ID)
 # thread_id is the slot the state is saved to
 config = {"configurable": {"thread_id": f"2026-02-03+test14993219191"}}
 
-graph.add_node("starter", starter)
-graph.add_node("editor", editor)
-graph.add_node("archiver", archiver)
-graph.add_node("director", director)
-graph.add_node("writer", writer)
-graph.add_node("saver", saver)
-graph.add_node("notifier", notifier)
-graph.add_node("publisher", publisher)
-graph.add_node("cleaner", cleaner)
+graph.add_node("load_prompts_and_get_topic", load_prompts_and_get_topic)
+graph.add_node("collect_news_and_summary", collect_news_and_summary)
+graph.add_node("save_news_sources_to_sheets", save_news_sources_to_sheets)
+graph.add_node("create_audio_for_video", create_audio_for_video)
+graph.add_node("create_visual_for_video", create_visual_for_video)
+graph.add_node("connect_visual_and_audio_for_video", connect_visual_and_audio_for_video)
+graph.add_node("create_post_description_for_video", create_post_description_for_video)
+graph.add_node("save_post_description", save_post_description)
+graph.add_node("send_approval_email", send_approval_email)
+graph.add_node("publish_video_and_description", publish_video_and_description)
+graph.add_node("mark_topic_complete", mark_topic_complete)
 
-graph.add_edge(START, "starter")
-graph.add_edge("starter", "editor")
-graph.add_edge("editor", "archiver")
-graph.add_edge("archiver", "director")
-graph.add_edge("director", "writer")
-graph.add_edge("writer", "saver")
-graph.add_edge("saver", "notifier")
-graph.add_edge("notifier", "publisher")
-graph.add_edge("publisher", "cleaner")
-graph.add_edge("cleaner", END)
+graph.add_edge(START, "load_prompts_and_get_topic")
+graph.add_edge("load_prompts_and_get_topic", "collect_news_and_summary")
+graph.add_edge("collect_news_and_summary", "save_news_sources_to_sheets")
+graph.add_edge("save_news_sources_to_sheets", "create_audio_for_video")
+graph.add_edge("create_audio_for_video", "create_visual_for_video")
+graph.add_edge("create_visual_for_video", "connect_visual_and_audio_for_video")
+graph.add_edge("connect_visual_and_audio_for_video", "create_post_description_for_video")
+graph.add_edge("create_post_description_for_video", "save_post_description")
+graph.add_edge("save_post_description", "send_approval_email")
+graph.add_edge("send_approval_email", "publish_video_and_description")
+graph.add_edge("publish_video_and_description", "mark_topic_complete")
+graph.add_edge("mark_topic_complete", END)
 
 # run command
-app = graph.compile(interrupt_before=["publisher"], checkpointer=memory)
+app = graph.compile(interrupt_before=["publish_video_and_description"], checkpointer=memory)
 
 if __name__ == "__main__":
     snapshot = app.get_state(config)

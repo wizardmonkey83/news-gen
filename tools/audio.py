@@ -12,7 +12,7 @@ client = ElevenLabs(
 
 # create audio snippet using script for video ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # elevenlabs docs: https://elevenlabs.io/docs/api-reference/text-to-speech/convert
-def generate_audio_snippet(audio_text: str, storage_prefix: str):
+def generate_audio_snippet(audio_script: str, storage_prefix: str):
     print("!!REAL!! GENERATING AUDIO")
 
     local_audio_path = None
@@ -27,7 +27,7 @@ def generate_audio_snippet(audio_text: str, storage_prefix: str):
             # placeholder voice id
             voice_id="JBFqnCBsd6RMkjVDRZzb",
             output_format="mp3_44100_128",
-            text=audio_text,
+            text=audio_script,
         )
 
         with tempfile.NamedTemporaryFile(suffix=".mp3", mode="wb", delete=False) as temp_audio:

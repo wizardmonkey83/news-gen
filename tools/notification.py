@@ -38,8 +38,3 @@ def send_request(video_url: str, post_description: str, thread_id: str):
         server.send_message(message)
     print("SENDING APPROVE/REJECT EMAIL....")
     return True
-
-    
-
-
-    

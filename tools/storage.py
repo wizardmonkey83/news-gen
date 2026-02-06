@@ -129,9 +129,3 @@ def bsky_prompt_changes_to_firestore(thread: str):
     
     print("!!REAL!! PROMPT UPDATES SAVED TO FIRESTORE")
     return True
-
-
-
-
-
-

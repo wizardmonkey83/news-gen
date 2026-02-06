@@ -62,6 +62,10 @@ METRIC_REVIEW_PROMPT = {
     "output_requirements": "Return a JSON object containing specific, actionable instructions to update the 'VideoPromptModel' (the script/visuals) and 'DescriptionPromptModel' (the social post text) for the next cycle."
 }
 
+TEXT_TO_SPEECH_SCRIPT = {
+    
+}
+
 VIDEO_PROMPT = {
     "video_prompt": {
         "show_concept": "This show is a traditional tech news broadcast hosted by a robot who thinks product launches are emotional events and \"AI safety\" is a firmware setting.",
@@ -206,13 +210,13 @@ RSS_FEED_ANALYSIS_PROMPT = {
   }
 }
 
-# used for summarizing the raw post_metrics
+# used for summarizing the raw post_metrics 
 SUMMARIZE_RAW_POST_METRICS_PROMPT = {
     
 }
 
 
-# docs: https://ai.google.dev/gemini-api/docs/structured-output?example=recipes
+# structured output docs: https://ai.google.dev/gemini-api/docs/structured-output?example=recipes
 class ToneAndComedicDNA(BaseModel):
     tone_keywords: Optional[List[str]] = Field(description="Keywords defining the emotional and stylistic tone of the broadcast.")
     comedy_sources: Optional[List[str]] = Field(description="Specific sources of humor derived from tech culture and robot logic.")

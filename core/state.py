@@ -18,13 +18,14 @@ class AgentState(TypedDict):
     audio_length: Optional[float]
 
     # visuals creation
-    script: Optional[str]
-    video_prompt: Optional[str]
+    visual_script: Optional[str]
+    visual_length: Optional[str]
 
     # storing video, desc in bucket
     storage_prefix: Optional[str]
     # link to the final video
     video_url: Optional[str]
+    
     filename: Optional[str]
     gs_link: Optional[str]
 

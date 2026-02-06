@@ -1,19 +1,34 @@
 from config import BUCKET_NAME, PROJECT_ID, SYNC_LABS_API_KEY
 
 import tempfile
-from google.cloud import storage
-from moviepy.video.io.VideoFileClip import VideoFileClip, AudioFileClip
-from sync import Sync
 import time
 import os
 import requests
-from sync.common import Audio, GenerationOptions, Video
+from sync import Sync
+from datetime import timedelta
+from google.cloud import storage
+from moviepy.video.io.VideoFileClip import VideoFileClip, AudioFileClip
+
 
 # splices together the visual and audio files to create a video --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# helper function to generate urls for completed videos
+def generate_signed_url(bucket_name, blob_name):
+    storage_client = storage.Client(project=PROJECT_ID)
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+
+    url = blob.generate_signed_url(
+        version="v4",
+        # think 24 is good
+        expiration=timedelta(hours=24),
+        method="GET",
+    )
+    return url
+
 # synclabs POST docs: https://docs.sync.so/api-reference/api/generate-api/create-with-files
 # synclabs GET docs: https://docs.sync.so/api-reference/api/generate-api/get
 # moviepy docs: https://zulko.github.io/moviepy/index.html
-def align_visual_and_audio(gs_link: str, visual_duration: float, audio_duration: float, storage_prefix: str):
+def sync_visual_and_audio(visual_length: float, audio_length: float, storage_prefix: str):
 
     # to avoid UnboundLocalErrors in the finally block
     local_visual_path = None
@@ -31,7 +46,7 @@ def align_visual_and_audio(gs_link: str, visual_duration: float, audio_duration:
         local_synced_video_path = temp_synced_video.name
 
     # will use later to crop videos if they get too long
-    tail_secs = visual_duration - audio_duration
+    tail_secs = visual_length - audio_length
     max_tail_secs = 2.0
 
     try:
@@ -72,7 +87,7 @@ def align_visual_and_audio(gs_link: str, visual_duration: float, audio_duration:
 
         # in order to avoid too much blank spac at the end of the video
         if tail_secs > max_tail_secs:
-            cut_visual = load_synced_video.subclipped(0, (audio_duration + max_tail_secs))
+            cut_visual = load_synced_video.subclipped(0, (audio_length + max_tail_secs))
         else:
             cut_visual = load_synced_video
         
@@ -87,10 +102,13 @@ def align_visual_and_audio(gs_link: str, visual_duration: float, audio_duration:
         complete_video_blob = bucket.blob(f"{storage_prefix}/video.mp4")
         complete_video_blob.upload_from_filename(local_complete_video_path)
 
-        return True
+        signed_url = generate_signed_url(BUCKET_NAME, f"{storage_prefix}/video.mp4")
+
+        return signed_url
 
     except Exception as e:
         print(f"!!REAL!! ERROR SYNCING VIDEO: {e}")
+        return
 
     finally:
         if os.path.exists(local_visual_path):
