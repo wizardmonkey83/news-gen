@@ -36,7 +36,7 @@ def collect_news_and_summary(state: AgentState):
     news_summary = result["summary"]
     sources = result["sources"]
 
-    audio_script = generate_text_to_speech_script(state["news_summary"])
+    audio_script = generate_text_to_speech_script(state["news_summary"], state["num_extensions"])
 
     return {"news_summary": news_summary, "sources": sources, "audio_script": audio_script}
 
@@ -80,7 +80,7 @@ def save_post_description(state: AgentState):
 
 # sends approve/reject email 
 def send_approval_email(state: AgentState, config: RunnableConfig):
-    visuals_url = state["visuals_url"]
+    visuals_url = state["video_url"]
     post_description = state["post_description"]
     thread_id = config["configurable"].get("thread_id")
     send_request(visuals_url, post_description, thread_id)

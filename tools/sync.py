@@ -108,7 +108,7 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
 
     except Exception as e:
         print(f"!!REAL!! ERROR SYNCING VIDEO: {e}")
-        return
+        raise Exception
 
     finally:
         if os.path.exists(local_visual_path):
