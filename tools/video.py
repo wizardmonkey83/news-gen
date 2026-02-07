@@ -5,8 +5,10 @@ import tempfile
 from google import genai
 from google.genai import types
 from google.cloud import storage
-from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, PROJECT_ID, LOCATION, LOCAL_DEV, MULTIPLE_VIDEO, VISUAL_EXTENSION_PROMPT, SIMPLE_VIDEO, VISUAL_SCRIPT_NEGATIVE_PROMPT
+from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, PROJECT_ID, LOCATION, LOCAL_DEV, MULTIPLE_VIDEO, VISUAL_EXTENSION_PROMPT, SIMPLE_VIDEO, VISUAL_SCRIPT_NEGATIVE_PROMPT, DID_API_KEY
 import math
+import requests
+from .sync import generate_signed_url
 from moviepy import VideoFileClip, AudioFileClip
 from moviepy.video.VideoClip import ImageClip
 
@@ -124,8 +126,82 @@ def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: floa
         }
     
 
+# uses D-ID API to create video from the still image -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+def generate_did_video(audio_length: float, storage_prefix: str):
+    
+    print("!!REAL!! GENERATING D-ID VIDEO...")
 
-# single visual + audio generation ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    audio_signed_url = generate_signed_url(BUCKET_NAME, f"{storage_prefix}/audio.mp3")
+    image_signed_url = generate_signed_url(BUCKET_NAME, "anchor9-reference.png")
+
+    did_url = "https://api.d-id.com/talks"
+
+    payload = {
+        "script": {
+            "type": "audio",
+            "audio_url": audio_signed_url
+        },
+        "source_url": image_signed_url,
+        "config": {
+            "fluent": "false",
+            "pad_audio": "0.0",
+            "stitch": True
+        }
+    }
+
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "authorization": f"Basic {DID_API_KEY}" 
+    }
+
+    response = requests.post(did_url, json=payload, headers=headers)
+
+    if response.status_code != 201:
+        raise Exception(f"!!REAL!! D-ID creation failed: {response.text}")
+    
+    talk_id = response.json().get("id")
+
+    result_url = None
+    status = "created"
+    while status not in ["done", "error"]:
+        time.sleep(5)
+
+        status_url = f"https://api.d-id.com/talks/{talk_id}"
+        status_response = requests.get(status_url, headers=headers)
+        status_data = status_response.json()
+        status = status_data.get("status")
+
+        if status == "done":
+            result_url = status_data.get("result_url")
+        elif status == "error":
+            raise Exception(f"!!REAL!! D-ID JOB FAILED: {status_data}")
+
+    print("!!REAL!! DOWNLOADING RESULT...")
+    
+    video_response = requests.get(result_url)
+
+    local_temp_path = None
+    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_video:
+        local_temp_path = temp_video.name
+        temp_video.write(video_response.content)
+
+    # Upload to GCS
+    storage_client = storage.Client(project=PROJECT_ID)
+    bucket = storage_client.bucket(BUCKET_NAME)
+    blob = bucket.blob(f"{storage_prefix}/video.mp4")
+    blob.upload_from_filename(local_temp_path)
+    
+    # Clean up local file
+    if os.path.exists(local_temp_path):
+        os.remove(local_temp_path)
+
+    print("!!REAL!! COMPLETE VIDEO SAVED TO BUCKET")
+
+    # Return signed URL for the frontend/agent
+    return generate_signed_url(BUCKET_NAME, f"{storage_prefix}/video.mp4")
+
+# single visual + audio generation -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # helper function that slowly zooms in, trying to trigger lipsync
 def add_micro_motion(local_visual_path):
     output_path = local_visual_path.replace(".mp4", "_motion.mp4")

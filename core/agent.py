@@ -1,7 +1,7 @@
 from config import DESCRIPTION_PROMPT, PROJECT_ID, LOCAL_DEV
 from tools.social import post_to_bsky
 from tools.news import collect_news
-from tools.video import generate_visuals, loop_image_to_video
+from tools.video import generate_visuals, loop_image_to_video, generate_did_video
 from tools.text import generate_description, generate_text_to_speech_script, generate_visual_script
 from tools.notification import send_request
 from tools.audio import generate_audio_snippet
@@ -58,16 +58,20 @@ def create_visual_for_video(state: AgentState):
     
     # then create visuals
     # contents = generate_visuals(visual_script, state["storage_prefix"], state["audio_length"])
-    contents = loop_image_to_video(state["audio_length"], state["storage_prefix"])
+    # contents = loop_image_to_video(state["audio_length"], state["storage_prefix"])
 
-    gs_link = contents["gs_link"]
-    visual_length = contents["visuals_length"]
-    return {"gs_link": gs_link, "visual_length": visual_length}
+    # gs_link = contents["gs_link"]
+    # visual_length = contents["visuals_length"]
+    # return {"gs_link": gs_link, "visual_length": visual_length}
+
+    signed_url = generate_did_video(state["audio_length"], state["storage_prefix"])
+    return {"video_url": signed_url}
 
 # syncs audio and visuals.
 def connect_visual_and_audio_for_video(state: AgentState):
-    signed_url = sync_visual_and_audio(state["visual_length"], state["audio_length"], state["storage_prefix"])
-    return {"video_url": signed_url}
+    # signed_url = sync_visual_and_audio(state["visual_length"], state["audio_length"], state["storage_prefix"])
+    # return {"video_url": signed_url}
+    return None
 
 # creates video description
 def create_post_description_for_video(state: AgentState):
@@ -102,7 +106,7 @@ graph = StateGraph(AgentState)
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
 # thread_id is the slot the state is saved to
-config = {"configurable": {"thread_id": f"2026-02-06_test_3349290112032919"}}
+config = {"configurable": {"thread_id": f"2026-02-06_test_2239229392191239"}}
 
 graph.add_node("load_prompts_and_get_topic", load_prompts_and_get_topic)
 graph.add_node("collect_news_and_summary", collect_news_and_summary)

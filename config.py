@@ -18,6 +18,7 @@ BSKY_PASSWORD = config("BSKY_PASSWORD")
 
 ELEVEN_LABS_API_KEY = config("ELEVEN_LABS_API_KEY")
 SYNC_LABS_API_KEY = config("SYNC_LABS_API_KEY")
+DID_API_KEY = config("DID_API_KEY")
 
 TEXT_MODEL = "gemini-2.5-pro"
 VIDEO_MODEL = "veo-3.1-generate-preview"
@@ -104,37 +105,30 @@ VISUAL_SCRIPT_NEGATIVE_PROMPT = (
 
 VISUAL_SCRIPT_GUIDELINES_PROMPT = {
     "visual_prompt": {
+        "source_of_truth": {
+            "reference_adherence": "ABSOLUTE. The output video must be a pixel-accurate animated version of the provided reference image.",
+            "consistency": "Do not alter the lighting, the background studio blur, the desk texture, or the robot's design. The reference image is the ground truth."
+        },
         "technical_specifications": {
-            "medium": "Cinemagraph from a high-fidelity still photograph.",
-            "render_quality": "Unreal Engine 5 style, 8k resolution, crisp detail.",
-            "camera_behavior": "EXTREME STATIC. The camera must act like a TRIPOD taking a PHOTO. ZERO MOVEMENT. NO PAN. NO ZOOM."
+            "camera_behavior": "STATIC TRIPOD. The camera coordinates are locked. Zero pan. Zero zoom. Zero shake.",
+            "frame_integrity": "The background pixels must remain identical to the reference image throughout the video."
         },
-        "composition_rules": {
-            "layout": "Split-screen composition. Right 40% is the Subject. Left 60% is Negative Space.",
-            "subject_position": "The robot is seated on the far RIGHT side of the frame.",
-            "negative_space": "The left side is a BLURRED DEPTH-OF-FIELD NEWSROOM BACKGROUND. It must match the lighting and blue tones of the reference image. It is NOT black. It is a studio background."
-        },
-        "subject_design": {
-            "identity": "ANCHOR-9: An industrial android with a non-human, geometric head.",
-            "material": "Matte grey metal chassis with brushed steel accents.",
-            "facial_features": [
-                "Eyes: Two glowing status lights (blue).",
-                "Mouth: SEALED SHUT. A static horizontal panel line. It MUST NOT MOVE. It must look like a closed vent.",
-                "Expression: Frozen, stoic, object-like."
+        "subject_behavior": {
+            "action": "Conversational Head Movement (Muted).",
+            "specific_motions": [
+                "The robot's HEAD must rotate slightly (1-2 degrees) left and right.",
+                "The robot must perform subtle 'emphasis nods' as if delivering a monologue.",
+                "The robot's SHOULDERS and TORSO must remain rigid and planted (matching the reference).",
+                "The 'eyes' (lights) should subtly pulse or shift focus to simulate life."
             ],
-            "orientation": "Facing DIRECTLY forward. Symmetric posture."
-        },
-        "environment": {
-            "setting": "A high-tech news broadcast studio. Blue and amber studio lights in the background.",
-            "props": "A polished wooden anchor desk in the foreground.",
-            "consistency": "The background must match the provided reference image exactly."
+            "mouth_instruction": "Keep the mouth area stable but allow the jaw/head angle to shift slightly to simulate speaking rhythm."
         },
         "strict_negatives": [
-            "NO HUMANS",
-            "NO MOVING MOUTH",
-            "NO TALKING",
-            "NO CAMERA SHAKE",
-            "NO BLACK VOID BACKGROUND",
+            "NO CAMERA MOVEMENT",
+            "NO BACKGROUND CHANGES",
+            "NO NEW COLORS",
+            "NO HAND GESTURES",
+            "NO MORPHING OF THE ROBOT CHASSIS"
         ]
     }
 }
@@ -142,26 +136,17 @@ VISUAL_SCRIPT_GUIDELINES_PROMPT = {
 
 VISUAL_EXTENSION_PROMPT = {
     "visual_extension_prompt": {
-        "task_objective": "Freeze the frame. Extend the video with ZERO visual changes.",
-        "technical_specifications": {
-            "camera_behavior": "TRIPOD LOCKED. Do not move the camera."
+        "task_objective": "Extend the video maintaining absolute reference fidelity.",
+        "source_reference": "Continue using the original reference video as the texture map.",
+        "motion_continuity": {
+            "instruction": "Continue the conversational head movements.",
+            "specifics": "Head tilts, slight nods, and gaze shifts. The robot must look like it is in the middle of a sentence, but the camera must remain frozen."
         },
-        "composition_rules": {
-            "layout": "Match the split-screen newsroom layout.",
-            "negative_space": "Keep the left side as the blurry newsroom studio. Do not turn it black."
-        },
-        "subject_continuity": {
-            "identity": "ANCHOR-9",
-            "motion_restrictions": [
-                "The robot acts like a statue.",
-                "The mouth line must remain SEALED."
-            ]
-        },
-        "strict_negatives": [
-            "NO MOVEMENT",
-            "NO AUDIO",
-            "NO TALKING",
-            "NO TEXT"
+        "strict_constraints": [
+            "The background MUST NOT SHIFT.",
+            "The robot's position on the screen MUST NOT CHANGE.",
+            "Do not introduce new lighting sources.",
+            "Do not animate the hands."
         ]
     }
 }
