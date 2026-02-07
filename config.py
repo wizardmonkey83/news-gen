@@ -134,7 +134,7 @@ VISUAL_SCRIPT_GUIDELINES_PROMPT = {
             "NO MOVING MOUTH",
             "NO TALKING",
             "NO CAMERA SHAKE",
-            "NO BLACK VOID BACKGROUND"
+            "NO BLACK VOID BACKGROUND",
         ]
     }
 }

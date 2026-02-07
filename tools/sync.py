@@ -2,12 +2,14 @@ from config import BUCKET_NAME, PROJECT_ID, SYNC_LABS_API_KEY
 
 import tempfile
 import time
+import json
 import os
 import requests
 from sync import Sync
 from datetime import timedelta
 from google.cloud import storage
 from moviepy.video.io.VideoFileClip import VideoFileClip, AudioFileClip
+from sync.common import GenerationOptions, ActiveSpeaker
 
 
 # splices together the visual and audio files to create a video --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -29,6 +31,8 @@ def generate_signed_url(bucket_name, blob_name):
 # synclabs GET docs: https://docs.sync.so/api-reference/api/generate-api/get
 # moviepy docs: https://zulko.github.io/moviepy/index.html
 def sync_visual_and_audio(visual_length: float, audio_length: float, storage_prefix: str):
+
+    ROBOT_MOUTH_COORDS = [2039, 539]
 
     # to avoid UnboundLocalErrors in the finally block
     local_visual_path = None
@@ -59,10 +63,19 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
 
         sync_client = Sync(api_key=SYNC_LABS_API_KEY)
 
+        options_payload = {
+            "active_speaker_detection": {
+                "auto_detect": False,
+                "frame_number": 0,
+                "coordinates": ROBOT_MOUTH_COORDS
+            }
+        }
+
         sync_operation = sync_client.generations.create_with_files(
             model="lipsync-2",
             video=local_visual_path,
-            audio=local_audio_path
+            audio=local_audio_path,
+            options=json.dumps(options_payload)
         )
 
         while sync_operation.status not in ["COMPLETED", "FAILED"]:

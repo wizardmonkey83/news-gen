@@ -7,7 +7,7 @@ from google.genai import types
 from google.cloud import storage
 from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, PROJECT_ID, LOCATION, LOCAL_DEV, MULTIPLE_VIDEO, VISUAL_EXTENSION_PROMPT, SIMPLE_VIDEO, VISUAL_SCRIPT_NEGATIVE_PROMPT
 import math
-from moviepy.video.io.VideoFileClip import VideoFileClip, AudioFileClip
+from moviepy import VideoFileClip, AudioFileClip
 from moviepy.video.VideoClip import ImageClip
 
 client = genai.Client(
@@ -33,7 +33,7 @@ def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: floa
 
         # reference image docs: https://ai.google.dev/gemini-api/docs/video?example=dialogue#reference-images
         visual_reference_image = types.Image(
-            gcs_uri=f"gs://{BUCKET_NAME}/news-gen-anchor9-reference.png",
+            gcs_uri=f"gs://{BUCKET_NAME}/anchor9-reference.png",
             mime_type="image/png"
         )
 
@@ -126,6 +126,41 @@ def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: floa
 
 
 # single visual + audio generation ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# helper function that slowly zooms in, trying to trigger lipsync
+def add_micro_motion(local_visual_path):
+    output_path = local_visual_path.replace(".mp4", "_motion.mp4")
+
+    try:
+        print("!!REAL!! ADDING MICRO-MOTION TO STATIC CLIP...")
+        looped_img = VideoFileClip(local_visual_path)
+        w, h = looped_img.size
+
+        def zoom_effect(t):
+            return 1 + 0.02 * (t / looped_img.duration)
+
+        moving_clip = (looped_img.resized(zoom_effect).with_position(("center", "center")).with_duration(looped_img.duration))
+        
+        final_clip = moving_clip.cropped(x1=0, y1=0, width=w, height=h)
+
+        final_clip.write_videofile(output_path, codec="libx264", audio=False, logger=None, fps=24)
+
+        final_clip.close()
+        moving_clip.close()
+        looped_img.close()
+
+        # Overwrite original
+        if os.path.exists(local_visual_path):
+            os.remove(local_visual_path)
+        os.rename(output_path, local_visual_path)
+        
+        print("!!REAL!! MICRO-MOTION APPLIED")
+
+    except Exception as e:
+        print(f"!!REAL!! Failed to add micro-motion: {e}")
+        if os.path.exists(output_path):
+            os.remove(output_path)
+
+
 # moviepy imageclip docs: https://zulko.github.io/moviepy/reference/reference/moviepy.video.VideoClip.ImageClip.html
 def loop_image_to_video(audio_length: float, storage_prefix: float):
 
@@ -143,16 +178,24 @@ def loop_image_to_video(audio_length: float, storage_prefix: float):
 
         storage_client = storage.Client(project=PROJECT_ID)
         bucket = storage_client.bucket(BUCKET_NAME)
-        blob = bucket.blob("news-gen-anchor9-reference.png")
+        blob = bucket.blob("anchor9-reference.png")
         blob.download_to_filename(local_ref_img_path)
 
-        looped_img = ImageClip(local_ref_img_path, audio_length)
-        looped_img.write_videofile(local_visual_path, codec="libx264", audio=False, verbose=False, logger=None)
+        looped_img = ImageClip(img=local_ref_img_path, duration=audio_length)
+        looped_img.write_videofile(local_visual_path, codec="libx264", audio=False, logger=None, fps=24)
 
-        blob = bucket.blob(f"{storage_prefix}/video.mp4")
+        add_micro_motion(local_visual_path)
+
+        storage_path = f"{storage_prefix}/visual.mp4"
+        blob = bucket.blob(storage_path)
         blob.upload_from_filename(local_visual_path)
 
         print("!!REAL!! LOOPED CLIP SAVED TO BUCKET")
+
+        return {
+            "gs_link": f"gs://{BUCKET_NAME}/{storage_path}",
+            "visuals_length": audio_length
+        }
 
     except Exception as e:
         raise Exception(f"!!REAL!! Error looping image: {e}")
@@ -164,5 +207,3 @@ def loop_image_to_video(audio_length: float, storage_prefix: float):
 
         if local_visual_path and os.path.exists(local_visual_path):
             os.remove(local_visual_path)
-
-
