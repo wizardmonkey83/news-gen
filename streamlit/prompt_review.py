@@ -2,11 +2,14 @@ import streamlit as st
 import pandas as pd
 import sys
 import os
+import ast
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from google.cloud import firestore
 from config import PROJECT_ID
+
+st.set_page_config(layout="wide")
 
 client = firestore.Client(project=PROJECT_ID)
 
@@ -53,43 +56,65 @@ def generate_review_page():
 
     new_video_prompt_df, new_desc_prompt_df = pd.DataFrame([new_video_prompt]), pd.DataFrame([new_desc_prompt])
 
-    col1, col2 = st.columns(2)
+    summary_tab, video_tab, desc_tab = st.tabs(["Summary", "Video Prompts", "Description Prompts"])
 
-    with col1:
-        
-        col1_container = st.container()
+    with summary_tab:
+        st.write("Metric Summary")
         col1_summary_container = st.container(border=True)
+        with col1_summary_container:
+            st.write(f"{metrics_summary}")
 
-        col1_video_prompt_expander = st.expander("Current Video Prompt")
-        col1_desc_prompt_expander = st.expander("Current Description Prompt")
-
-        with col1_container:
-            st.write("Metric Sentiment Summary")
-
-            with col1_summary_container:
-                st.write(f"{metrics_summary}")
+    with video_tab:
+        old_col, new_col = st.columns(2)
+        with old_col:
+            col1_video_prompt_expander = st.expander("Current")
 
             with col1_video_prompt_expander:
                 st.json(old_video_prompt)
 
-            with col1_desc_prompt_expander:
-                st.json(old_desc_prompt)
+        with new_col:
+            col2_video_prompt_expander = st.expander("New (Editable)")
 
-
-    with col2:
-
-        col2_container = st.container()
-    
-        col2_video_prompt_expander = st.expander("New Video Prompt")
-        col2_desc_prompt_expander = st.expander("New Description Prompt")
-
-        with col2_container:
+            df_video = pd.DataFrame(list(new_video_prompt.items()), columns=["Key", "Value"])
             
+            edited_video_df = st.data_editor(
+                df_video,
+                use_container_width=True,
+                hide_index=True,
+                disabled=["Key"],
+                key="video_editor",
+                column_config={
+                    "Value": st.column_config.TextColumn(
+                        "Prompt Content",
+                        width="large",
+                        help="Edit the prompt text here"
+                    )
+                }
+            )
+            
+            new_video_prompt = dict(zip(edited_video_df["Key"], edited_video_df["Value"]))
+                
             with col2_video_prompt_expander:
                 st.data_editor(new_video_prompt_df, key="video_prompt_df", num_rows="dynamic")
 
+                
+
+
+    with desc_tab:
+        old_col, new_col = st.columns(2)
+
+        with old_col:
+            col1_desc_prompt_expander = st.expander("Current")
+
+            with col1_desc_prompt_expander:
+                st.json(old_desc_prompt)
+
+        with new_col:
+            col2_desc_prompt_expander = st.expander("New (Editable)")
+
             with col2_desc_prompt_expander:
-                st.data_editor(new_desc_prompt_df, key="desc_prompt_df", num_rows="dynamic")
+                    st.data_editor(new_desc_prompt_df, key="desc_prompt_df", num_rows="dynamic")
+                
         
     save_btn = st.button("Save")
 
