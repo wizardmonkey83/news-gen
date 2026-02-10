@@ -118,9 +118,9 @@ def summarize_bsky_metrics(post_metrics: dict):
         location=LOCATION
     )
 
-    response = client.model.generate_description(
+    response = client.models.generate_content(
         model=TEXT_MODEL,
-        contents=[SUMMARIZE_RAW_POST_METRICS_PROMPT, json.dumps(post_metrics)]
+        contents=[json.dumps(SUMMARIZE_RAW_POST_METRICS_PROMPT), json.dumps(post_metrics)]
     )
 
     post_metric_summary = response.text

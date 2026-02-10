@@ -47,7 +47,7 @@ def updater(state: FeedbackState, config: RunnableConfig):
 graph = StateGraph(FeedbackState)
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
-config = {"configurable": {"thread_id": f"{date.today()}_31112u21u1i"}}
+config = {"configurable": {"thread_id": f"{date.today()}_test_10210"}}
 
 graph.add_node("starter", starter)
 graph.add_node("extracter", extracter)

@@ -1,4 +1,4 @@
-from config import TEXT_MODEL, VIDEO_MODEL, VIDEO_PROMPT, DESCRIPTION_PROMPT, PROJECT_ID, BUCKET_NAME, SYNC_LABS_API_KEY
+from config import TEXT_MODEL, VIDEO_MODEL, VISUAL_SCRIPT_GUIDELINES_PROMPT, DESCRIPTION_PROMPT, PROJECT_ID, BUCKET_NAME, SYNC_LABS_API_KEY
 from datetime import datetime
 from google.cloud import firestore
 
@@ -11,7 +11,7 @@ def stage_prompts_for_review(metrics_summary: str, dict_video_response: dict, di
         "metrics_summary": metrics_summary,
         "new_video_prompt": dict_video_response,
         "new_desc_prompt": dict_desc_response,
-        "old_video_prompt": VIDEO_PROMPT,
+        "old_video_prompt": VISUAL_SCRIPT_GUIDELINES_PROMPT,
         "old_desc_prompt": DESCRIPTION_PROMPT,
         "metadata": {
             "status": "pending",

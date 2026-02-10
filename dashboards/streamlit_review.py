@@ -3,6 +3,7 @@ import pandas as pd
 import sys
 import os
 import ast
+import json
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -75,24 +76,31 @@ def generate_review_page():
         with new_col:
             col2_video_prompt_expander = st.expander("New (Editable)")
 
-            df_video = pd.DataFrame(list(new_video_prompt.items()), columns=["Key", "Value"])
+            editable_data = []
+            for k, v in new_video_prompt.items():
+                editable_data.append({
+                    "Key": k,
+                    # json.dumps makes it a string, indent=2 makes it readable
+                    "Value": json.dumps(v, indent=2) 
+                })
             
+            df_video = pd.DataFrame(editable_data)
+
+            # 2. RENDER THE EDITOR
             edited_video_df = st.data_editor(
                 df_video,
                 use_container_width=True,
                 hide_index=True,
-                disabled=["Key"],
+                disabled=["Key"], # Lock the keys
                 key="video_editor",
                 column_config={
                     "Value": st.column_config.TextColumn(
-                        "Prompt Content",
+                        "Prompt Content (JSON)",
                         width="large",
-                        help="Edit the prompt text here"
+                        help="Edit the JSON value. Ensure brackets {} match."
                     )
                 }
             )
-            
-            new_video_prompt = dict(zip(edited_video_df["Key"], edited_video_df["Value"]))
                 
             with col2_video_prompt_expander:
                 st.data_editor(new_video_prompt_df, key="video_prompt_df", num_rows="dynamic")
@@ -128,7 +136,3 @@ def generate_review_page():
 
         prompt_review_ref = client.collection("news_gen_prompt_reviews").document(thread)
         prompt_review_ref.set(payload)
-
-
-if __name__ == "__main__":
-    generate_review_page()

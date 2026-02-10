@@ -31,8 +31,8 @@ MOCK_SOCIAL = True
 # simple videos are videos where both audio and visuals are created together. as opposed to generating them seperately, and splicing together.
 SIMPLE_VIDEO = False
 
-# for analyst
-MOCK_BSKY_METRICS = True
+# for feedback
+MOCK_BSKY_METRICS = False
 
 
 LOCAL_DEV = True

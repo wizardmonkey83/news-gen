@@ -187,5 +187,7 @@ def get_bsky_url():
         if week_ago <= row_date and row_date <= curr_date:
             post_url = row[5]
             post_urls.append(post_url)
-            
+    
+    print(f"!!REAL!! POST URLS GATHERED: {post_urls}")
+
     return post_urls
