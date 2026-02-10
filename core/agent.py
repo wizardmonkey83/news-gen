@@ -54,24 +54,26 @@ def create_audio_for_video(state: AgentState):
 # creates visuals
 def create_visual_for_video(state: AgentState):
     # first create visual script
-    # visual_script = generate_visual_script(state["audio_script"])
+    visual_script = generate_visual_script(state["audio_script"])
     
     # then create visuals
-    # contents = generate_visuals(visual_script, state["storage_prefix"], state["audio_length"])
+    contents = generate_visuals(visual_script, state["storage_prefix"], state["audio_length"])
+
+    # loop still image
     # contents = loop_image_to_video(state["audio_length"], state["storage_prefix"])
 
-    # gs_link = contents["gs_link"]
-    # visual_length = contents["visuals_length"]
-    # return {"gs_link": gs_link, "visual_length": visual_length}
+    gs_link = contents["gs_link"]
+    visual_length = contents["visuals_length"]
+    return {"gs_link": gs_link, "visual_length": visual_length}
 
-    signed_url = generate_did_video(state["audio_length"], state["storage_prefix"])
-    return {"video_url": signed_url}
+    # D-ID gen
+    # signed_url = generate_did_video(state["audio_length"], state["storage_prefix"])
+    # return {"video_url": signed_url}
 
 # syncs audio and visuals.
 def connect_visual_and_audio_for_video(state: AgentState):
-    # signed_url = sync_visual_and_audio(state["visual_length"], state["audio_length"], state["storage_prefix"])
-    # return {"video_url": signed_url}
-    return None
+    signed_url = sync_visual_and_audio(state["visual_length"], state["audio_length"], state["storage_prefix"])
+    return {"video_url": signed_url}
 
 # creates video description
 def create_post_description_for_video(state: AgentState):
@@ -106,7 +108,7 @@ graph = StateGraph(AgentState)
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
 # thread_id is the slot the state is saved to
-config = {"configurable": {"thread_id": f"2026-02-06_test_2239229392191239"}}
+config = {"configurable": {"thread_id": f"2026-02-06_test_211313565321"}}
 
 graph.add_node("load_prompts_and_get_topic", load_prompts_and_get_topic)
 graph.add_node("collect_news_and_summary", collect_news_and_summary)

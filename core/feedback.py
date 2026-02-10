@@ -1,4 +1,4 @@
-from core.state import AnalystState
+from core.state import FeedbackState
 from langgraph.graph import StateGraph, START, END
 from langchain_core.runnables import RunnableConfig
 from langgraph_checkpoint_firestore import FirestoreSaver
@@ -15,36 +15,36 @@ from tools.staging import stage_prompts_for_review
 from tools.storage import bsky_metrics_to_firestore, bsky_prompt_changes_to_firestore
 
 
-def starter(state: AnalystState):
+def starter(state: FeedbackState):
     bsky_post_urls = get_bsky_url()
     return {"bsky_post_urls": bsky_post_urls}
 
 # extracts metrics/engagement from post 
-def extracter(state: AnalystState):
+def extracter(state: FeedbackState):
     post_metrics = extract_bsky_metrics(state["bsky_post_urls"])
     post_metric_summary = summarize_bsky_metrics(post_metrics)
     return {"post_metrics": post_metrics, "post_metric_summary": post_metric_summary}
 
 # saves post_metrics to firestore
-def converter(state: AnalystState):
+def converter(state: FeedbackState):
     bsky_metrics_to_firestore(state["post_metrics"])
 
 # compares metrics to current prompt/s
-def reviewer(state: AnalystState):
+def reviewer(state: FeedbackState):
     dict_video_response, dict_desc_response = review_bsky_metrics(state["post_metrics"])
     return {"dict_video_response": dict_video_response, "dict_desc_response": dict_desc_response}
 
-def stager(state: AnalystState, config: RunnableConfig):
+def stager(state: FeedbackState, config: RunnableConfig):
     thread_id = config["configurable"].get("thread_id")
     stage_prompts_for_review(state["post_metric_summary"], state["dict_video_response"], state["dict_desc_response"], thread_id)
 
 
-def updater(state: AnalystState, config: RunnableConfig):
+def updater(state: FeedbackState, config: RunnableConfig):
     thread_id = config["configurable"].get("thread_id")
     bsky_prompt_changes_to_firestore(thread_id)
 
 
-graph = StateGraph(AnalystState)
+graph = StateGraph(FeedbackState)
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
 config = {"configurable": {"thread_id": f"{date.today()}_31112u21u1i"}}

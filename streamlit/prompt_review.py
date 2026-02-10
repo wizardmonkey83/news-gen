@@ -53,37 +53,43 @@ def generate_review_page():
 
     new_video_prompt_df, new_desc_prompt_df = pd.DataFrame([new_video_prompt]), pd.DataFrame([new_desc_prompt])
 
-    col1_container = st.container()
-    col1_summary_container = st.container(border=True)
+    col1, col2 = st.columns(2)
 
-    col1_video_prompt_expander = st.expander("Old Video Prompt")
-    col1_desc_prompt_expander = st.expander("Old Description Prompt")
-
-    with col1_container:
-        st.write("Metric Sentiment Summary")
-
-        with col1_summary_container:
-            st.write(f"{metrics_summary}")
-
-        with col1_video_prompt_expander:
-            st.write(f"{old_video_prompt}")
-
-        with col1_desc_prompt_expander:
-            st.write(f"{old_desc_prompt}")
-
-
-    col2_container = st.container()
-    
-    col2_video_prompt_expander = st.expander("New Video Prompt")
-    col2_desc_prompt_expander = st.expander("New Description Prompt")
-
-    with col2_container:
+    with col1:
         
-        with col2_video_prompt_expander:
-            st.data_editor(new_video_prompt_df, key="video_prompt_df", num_rows="dynamic")
+        col1_container = st.container()
+        col1_summary_container = st.container(border=True)
 
-        with col2_desc_prompt_expander:
-            st.data_editor(new_desc_prompt_df, key="desc_prompt_df", num_rows="dynamic")
+        col1_video_prompt_expander = st.expander("Current Video Prompt")
+        col1_desc_prompt_expander = st.expander("Current Description Prompt")
+
+        with col1_container:
+            st.write("Metric Sentiment Summary")
+
+            with col1_summary_container:
+                st.write(f"{metrics_summary}")
+
+            with col1_video_prompt_expander:
+                st.json(old_video_prompt)
+
+            with col1_desc_prompt_expander:
+                st.json(old_desc_prompt)
+
+
+    with col2:
+
+        col2_container = st.container()
+    
+        col2_video_prompt_expander = st.expander("New Video Prompt")
+        col2_desc_prompt_expander = st.expander("New Description Prompt")
+
+        with col2_container:
+            
+            with col2_video_prompt_expander:
+                st.data_editor(new_video_prompt_df, key="video_prompt_df", num_rows="dynamic")
+
+            with col2_desc_prompt_expander:
+                st.data_editor(new_desc_prompt_df, key="desc_prompt_df", num_rows="dynamic")
         
     save_btn = st.button("Save")
 

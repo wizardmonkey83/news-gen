@@ -39,7 +39,7 @@ class AgentState(TypedDict):
 
 
 # feedback state ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-class AnalystState(TypedDict):
+class FeedbackState(TypedDict):
     bsky_post_urls: Optional[list]
     post_metrics: Optional[dict]
 
