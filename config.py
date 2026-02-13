@@ -24,10 +24,12 @@ TEXT_MODEL = "gemini-2.5-pro"
 VIDEO_MODEL = "veo-3.1-generate-preview"
 
 # for agent
+DEMO = True
 MOCK_NEWS = False
 MOCK_VIDEO = False
 MOCK_DESC = False
 MOCK_SOCIAL = True
+MOCK_SYNC = True
 # simple videos are videos where both audio and visuals are created together. as opposed to generating them seperately, and splicing together.
 SIMPLE_VIDEO = False
 
@@ -93,43 +95,34 @@ TEXT_TO_SPEECH_GUIDELINES_PROMPT = {
     ]
 }
 
-VISUAL_SCRIPT_NEGATIVE_PROMPT = (
-    "human, real person, human face, skin, flesh, lips, mouth, teeth, tongue, "
-    "talking, speaking, open mouth, "
-    "moving camera, handheld camera, camera shake, zoom, pan, tilt, dolly, "
-    "text, words, letters, chyron, lower third, headlines, subtitles, watermark, logo, "
-    "newsroom staff, people in background, audience, crowds, "
-    "two robots, multiple subjects, gestures, waving, "
-    "morphing, melting, glitching, distortion"
-)
+VISUAL_SCRIPT_NEGATIVE_PROMPT = {
+    "negative_prompt": "text, words, fonts, typography, subtitles, captions, lower thirds, chyrons, news tickers, logos, watermarks, copyright symbols, trademarks, branding, icons, hud, ui, interface elements, speech bubbles, camera movement, zoom, pan, tilt, dolly, truck, shaky cam, handheld, motion blur, "
+    "morphing, glitching, distortion, extra limbs, fused fingers, changing background, light leaks, lens flare, close-up, macro, zoomed, cropped.",
+}
 
+# still shot reference: https://www.wimarys.com/google-veo-camera-controls-mastering-cinematic-techniques-2025/, https://leonardo.ai/news/mastering-prompts-for-veo-3/
 VISUAL_SCRIPT_GUIDELINES_PROMPT = {
     "visual_prompt": {
-        "source_of_truth": {
-            "reference_adherence": "ABSOLUTE. The output video must be a pixel-accurate animated version of the provided reference image.",
-            "consistency": "Do not alter the lighting, the background studio blur, the desk texture, or the robot's design. The reference image is the ground truth."
+        "video_generation_context": {
+            "goal": "Cinematic Video Generation using Image-to-Video",
+            "primary_directive": "Animate the provided reference image with high fidelity, maintaining the exact visual composition."
         },
-        "technical_specifications": {
-            "camera_behavior": "STATIC TRIPOD. The camera coordinates are locked. Zero pan. Zero zoom. Zero shake.",
-            "frame_integrity": "The background pixels must remain identical to the reference image throughout the video."
+
+        "reference_fidelity": {
+            "instruction": "The attached image is the ABSOLUTE GROUND TRUTH. Do not alter the setting, the lighting, the colors, or the character design.",
+            "background_lock": "The background environment (studio, screens, desk) must remain pixel-stable. No shifting, warping, or 'breathing' of the background elements."
         },
-        "subject_behavior": {
-            "action": "Conversational Head Movement (Muted).",
-            "specific_motions": [
-                "The robot's HEAD must rotate slightly (1-2 degrees) left and right.",
-                "The robot must perform subtle 'emphasis nods' as if delivering a monologue.",
-                "The robot's SHOULDERS and TORSO must remain rigid and planted (matching the reference).",
-                "The 'eyes' (lights) should subtly pulse or shift focus to simulate life."
-            ],
-            "mouth_instruction": "Keep the mouth area stable but allow the jaw/head angle to shift slightly to simulate speaking rhythm."
+
+        "subject": {
+            "gaze": "Head pose [0, 0, 0], Frontal alignment, Gaze vector aligned with camera z-axis, direct eye contact."
         },
-        "strict_negatives": [
-            "NO CAMERA MOVEMENT",
-            "NO BACKGROUND CHANGES",
-            "NO NEW COLORS",
-            "NO HAND GESTURES",
-            "NO MORPHING OF THE ROBOT CHASSIS"
-        ]
+
+        "camera_direction": {
+            "type": "Static shot, camera completely still.",
+            "movement": "Fixed camera angle, no movement.",
+            "focus": "Exactly matching the reference image. Fixed perspective at eye-level.",
+            "lens": "35mm Lens. Wide angle. Full shot. Uncropped frame."
+        },
     }
 }
 
@@ -138,16 +131,23 @@ VISUAL_EXTENSION_PROMPT = {
     "visual_extension_prompt": {
         "task_objective": "Extend the video maintaining absolute reference fidelity.",
         "source_reference": "Continue using the original reference video as the texture map.",
-        "motion_continuity": {
-            "instruction": "Continue the conversational head movements.",
-            "specifics": "Head tilts, slight nods, and gaze shifts. The robot must look like it is in the middle of a sentence, but the camera must remain frozen."
-        },
+
         "strict_constraints": [
             "The background MUST NOT SHIFT.",
             "The robot's position on the screen MUST NOT CHANGE.",
-            "Do not introduce new lighting sources.",
-            "Do not animate the hands."
-        ]
+            "Do not introduce new lighting sources."
+        ],
+
+        "subject": {
+            "gaze": "Head pose [0, 0, 0], Frontal alignment, Gaze vector aligned with camera z-axis, direct eye contact."
+        },
+
+        "camera_direction": {
+            "type": "Static shot, camera completely still.",
+            "movement": "Fixed camera angle, no movement.",
+            "focus": "Exactly matching the scene of previous video."
+        },
+
     }
 }
 

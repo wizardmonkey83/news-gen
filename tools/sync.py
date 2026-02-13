@@ -1,4 +1,4 @@
-from config import BUCKET_NAME, PROJECT_ID, SYNC_LABS_API_KEY
+from config import BUCKET_NAME, PROJECT_ID, SYNC_LABS_API_KEY, MOCK_SYNC
 
 import tempfile
 import time
@@ -61,47 +61,42 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
         audio_blob = bucket.blob(f"{storage_prefix}/audio.mp3")
         audio_blob.download_to_filename(local_audio_path)
 
-        sync_client = Sync(api_key=SYNC_LABS_API_KEY)
+        if not MOCK_SYNC:
+            sync_client = Sync(api_key=SYNC_LABS_API_KEY)
 
-        options_payload = {
-            "active_speaker_detection": {
-                "auto_detect": False,
-                "frame_number": 0,
-                "coordinates": ROBOT_MOUTH_COORDS
-            }
-        }
+            sync_operation = sync_client.generations.create_with_files(
+                model="lipsync-2",
+                video=local_visual_path,
+                audio=local_audio_path
+            )
 
-        sync_operation = sync_client.generations.create_with_files(
-            model="lipsync-2",
-            video=local_visual_path,
-            audio=local_audio_path,
-            options=json.dumps(options_payload)
-        )
+            while sync_operation.status not in ["COMPLETED", "FAILED"]:
+                print(f"!!REAL!! SYNC_OPERATION STATUS: {sync_operation.status}")
+                time.sleep(10)
+                sync_operation = sync_client.generations.get(sync_operation.id)
 
-        while sync_operation.status not in ["COMPLETED", "FAILED"]:
-            print(f"!!REAL!! SYNC_OPERATION STATUS: {sync_operation.status}")
-            time.sleep(10)
-            sync_operation = sync_client.generations.get(sync_operation.id)
+            if sync_operation.error:
+                raise Exception(f"Error during sync_operation: {sync_operation.error}. Status code: {sync_operation.error_code}.")
+            
+            # get the actual file. didnt know requests did this.
+            sync_operation_response = requests.get(sync_operation.output_url)
 
-        if sync_operation.error:
-            raise Exception(f"Error during sync_operation: {sync_operation.error}. Status code: {sync_operation.error_code}.")
-        
-        # get the actual file. didnt know requests did this.
-        sync_operation_response = requests.get(sync_operation.output_url)
+            print("!!REAL!! VISUAL AND AUDIO SYNCED")
 
-        print("!!REAL!! VISUAL AND AUDIO SYNCED")
+            # iterates over chunks to avoid overloading ram by loading it all at once
+            with open(local_synced_video_path, 'wb') as temp_synced_video:
+                for chunk in sync_operation_response.iter_content(chunk_size=1024):
+                    temp_synced_video.write(chunk)
 
-        # iterates over chunks to avoid overloading ram by loading it all at once
-        with open(local_synced_video_path, 'wb') as temp_synced_video:
-            for chunk in sync_operation_response.iter_content(chunk_size=1024):
-                temp_synced_video.write(chunk)
-
-        load_synced_video = VideoFileClip(local_synced_video_path)
+            load_synced_video = VideoFileClip(local_synced_video_path)
+        else:
+            load_synced_video = VideoFileClip(local_visual_path)
 
         # in order to avoid too much blank spac at the end of the video
-        visual_length = VideoFileClip(local_visual_path).duration
+        with VideoFileClip(local_visual_path) as temp_visual_clip:
+            visual_length = temp_visual_clip.duration
         tail_secs = visual_length - audio_length
-        max_tail_secs = 2.0
+        max_tail_secs = 1.0
 
         if tail_secs > max_tail_secs:
             cut_visual = load_synced_video.subclipped(0, (audio_length + max_tail_secs))
@@ -110,12 +105,20 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
         
         
         load_audio = AudioFileClip(local_audio_path)
-        completed_video = cut_visual.set_audio(load_audio)
+        completed_video = cut_visual.with_audio(load_audio)
 
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_complete_video:
             local_complete_video_path = temp_complete_video.name
 
         completed_video.write_videofile(local_complete_video_path)
+
+        load_audio.close()
+        load_synced_video.close() 
+        completed_video.close()
+
+        if cut_visual != load_synced_video:
+            cut_visual.close()
+
         complete_video_blob = bucket.blob(f"{storage_prefix}/video.mp4")
         complete_video_blob.upload_from_filename(local_complete_video_path)
 
@@ -130,7 +133,7 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
         raise Exception
 
     finally:
-        if local_visual_path and  os.path.exists(local_visual_path):
+        if local_visual_path and os.path.exists(local_visual_path):
             os.remove(local_visual_path)
 
         if local_audio_path and os.path.exists(local_audio_path):

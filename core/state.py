@@ -23,6 +23,7 @@ class AgentState(TypedDict):
 
     # storing video, desc in bucket
     storage_prefix: Optional[str]
+    reference_image_uri: Optional[str]
     # link to the final video
     video_url: Optional[str]
     

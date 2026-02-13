@@ -1,4 +1,4 @@
-from config import DESCRIPTION_PROMPT, PROJECT_ID, LOCAL_DEV
+from config import DESCRIPTION_PROMPT, PROJECT_ID, LOCAL_DEV, DEMO
 from tools.social import post_to_bsky
 from tools.news import collect_news
 from tools.video import generate_visuals, loop_image_to_video, generate_did_video
@@ -20,15 +20,24 @@ import random
 # gets topic from google sheet
 def load_prompts_and_get_topic(state: AgentState):
     print("WAKING UP....")
-    load_prompts_to_config()
-    topic, num_extensions = get_topic()
+    if not DEMO:
+        load_prompts_to_config()
+        topic, num_extensions = get_topic()
 
-    if LOCAL_DEV:
-        num = random.randint(0, 1000)
-        storage_prefix = f"{topic}_{num}"
+        if LOCAL_DEV:
+            num = random.randint(0, 1000)
+            storage_prefix = f"{topic}_{num}"
+        else:
+            storage_prefix = f"{topic}_{date.today()}"
+        return {"topic": topic, "num_extensions": num_extensions, "storage_prefix": storage_prefix}
     else:
-        storage_prefix = f"{topic}_{date.today()}"
-    return {"topic": topic, "num_extensions": num_extensions, "storage_prefix": storage_prefix}
+        topic = state.get("topic", "")
+        if LOCAL_DEV:
+             num = random.randint(0, 1000)
+             storage_prefix = f"{topic}_{num}"
+        else:
+             storage_prefix = f"{topic}_{date.today()}"
+        return {"storage_prefix": storage_prefix}
 
 # collects news sources and creates a summary. also creates audio_script
 def collect_news_and_summary(state: AgentState):
@@ -55,9 +64,8 @@ def create_audio_for_video(state: AgentState):
 def create_visual_for_video(state: AgentState):
     # first create visual script
     visual_script = generate_visual_script(state["audio_script"])
-    
     # then create visuals
-    contents = generate_visuals(visual_script, state["storage_prefix"], state["audio_length"])
+    contents = generate_visuals(visual_script, state["storage_prefix"], state["audio_length"], state.get("reference_image_uri"))
 
     # loop still image
     # contents = loop_image_to_video(state["audio_length"], state["storage_prefix"])
@@ -78,19 +86,12 @@ def connect_visual_and_audio_for_video(state: AgentState):
 # creates video description
 def create_post_description_for_video(state: AgentState):
     gs_link = state["gs_link"]
-    post_description = generate_description(gs_link, DESCRIPTION_PROMPT)
+    post_description = generate_description(prompt=DESCRIPTION_PROMPT, news_summary=state["news_summary"])
     return {"post_description": post_description}
 
 # saves description to bucket
 def save_post_description(state: AgentState):
     desc_to_bucket(state["post_description"], state["storage_prefix"])
-
-# sends approve/reject email 
-def send_approval_email(state: AgentState, config: RunnableConfig):
-    visuals_url = state["video_url"]
-    post_description = state["post_description"]
-    thread_id = config["configurable"].get("thread_id")
-    send_request(visuals_url, post_description, thread_id)
 
 # once video is approved for publishing
 def publish_video_and_description(state: AgentState):
@@ -108,7 +109,7 @@ graph = StateGraph(AgentState)
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
 # thread_id is the slot the state is saved to
-config = {"configurable": {"thread_id": f"2026-02-06_test_211313565321"}}
+config = {"configurable": {"thread_id": f"demo-suit-test-1292444732199429"}}
 
 graph.add_node("load_prompts_and_get_topic", load_prompts_and_get_topic)
 graph.add_node("collect_news_and_summary", collect_news_and_summary)
@@ -118,7 +119,6 @@ graph.add_node("create_visual_for_video", create_visual_for_video)
 graph.add_node("connect_visual_and_audio_for_video", connect_visual_and_audio_for_video)
 graph.add_node("create_post_description_for_video", create_post_description_for_video)
 graph.add_node("save_post_description", save_post_description)
-graph.add_node("send_approval_email", send_approval_email)
 graph.add_node("publish_video_and_description", publish_video_and_description)
 graph.add_node("mark_topic_complete", mark_topic_complete)
 
@@ -130,8 +130,7 @@ graph.add_edge("create_audio_for_video", "create_visual_for_video")
 graph.add_edge("create_visual_for_video", "connect_visual_and_audio_for_video")
 graph.add_edge("connect_visual_and_audio_for_video", "create_post_description_for_video")
 graph.add_edge("create_post_description_for_video", "save_post_description")
-graph.add_edge("save_post_description", "send_approval_email")
-graph.add_edge("send_approval_email", "publish_video_and_description")
+graph.add_edge("save_post_description", "publish_video_and_description")
 graph.add_edge("publish_video_and_description", "mark_topic_complete")
 graph.add_edge("mark_topic_complete", END)
 

@@ -5,7 +5,7 @@ import tempfile
 from google import genai
 from google.genai import types
 from google.cloud import storage
-from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, PROJECT_ID, LOCATION, LOCAL_DEV, MULTIPLE_VIDEO, VISUAL_EXTENSION_PROMPT, SIMPLE_VIDEO, VISUAL_SCRIPT_NEGATIVE_PROMPT, DID_API_KEY
+from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, PROJECT_ID, LOCATION, LOCAL_DEV, MULTIPLE_VIDEO, DEMO, VISUAL_EXTENSION_PROMPT, SIMPLE_VIDEO, VISUAL_SCRIPT_NEGATIVE_PROMPT, DID_API_KEY, VISUAL_SCRIPT_GUIDELINES_PROMPT
 import math
 import requests
 from .sync import generate_signed_url
@@ -20,7 +20,7 @@ client = genai.Client(
 
 # generates only the visuals for the video -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # veo docs: https://ai.google.dev/gemini-api/docs/video?example=dialogue
-def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: float):
+def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: float, reference_image_uri: str = None):
     if not MOCK_VIDEO and not SIMPLE_VIDEO:
         filename = "visual.mp4"
         if not LOCAL_DEV:
@@ -33,9 +33,16 @@ def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: floa
         else:
             num_extensions = math.ceil((audio_length - 8)/7)
 
+        # demo
+        if reference_image_uri:
+            gcs_uri = reference_image_uri
+        else:
+            gcs_uri = f"gs://{BUCKET_NAME}/anchor9-reference.png"
+
+
         # reference image docs: https://ai.google.dev/gemini-api/docs/video?example=dialogue#reference-images
         visual_reference_image = types.Image(
-            gcs_uri=f"gs://{BUCKET_NAME}/anchor9-reference.png",
+            gcs_uri=gcs_uri,
             mime_type="image/png"
         )
 
@@ -46,10 +53,10 @@ def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: floa
 
         operation = client.models.generate_videos(
             model=VIDEO_MODEL,
-            prompt=visual_prompt,
+            prompt=json.dumps(VISUAL_SCRIPT_GUIDELINES_PROMPT),
             config=types.GenerateVideosConfig(
                 reference_images=[reference_image_wrapper],
-                negative_prompt=VISUAL_SCRIPT_NEGATIVE_PROMPT,
+                negative_prompt=json.dumps(VISUAL_SCRIPT_NEGATIVE_PROMPT),
                 generate_audio=False,
             ),
         )
@@ -84,7 +91,7 @@ def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: floa
                         number_of_videos=1,
                         resolution="720p",
                         output_gcs_uri=bucket_uri,
-                        negative_prompt=VISUAL_SCRIPT_NEGATIVE_PROMPT,
+                        negative_prompt=json.dumps(VISUAL_SCRIPT_NEGATIVE_PROMPT),
                         generate_audio=False
                     ),
                 )

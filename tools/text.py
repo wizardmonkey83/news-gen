@@ -6,18 +6,13 @@ from config import MOCK_DESC, MOCK_VIDEO, TEXT_MODEL, PROJECT_ID, LOCATION, TEXT
 client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
 
 # creates description to go along with the video -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-def generate_description(gs_link: str, prompt: str):
+def generate_description(prompt: str, news_summary: str):
     if not MOCK_DESC and not MOCK_VIDEO:
         print("!!REAL!! GENERATING POST DESCRIPTION....")
 
-        video = types.Part.from_uri(
-            file_uri=gs_link,
-            mime_type="video/mp4"
-        )
-
         response = client.models.generate_content(
             model=TEXT_MODEL, 
-            contents=[video, str(prompt)]
+            contents=[news_summary, str(prompt)]
         )
 
         print("!!REAL!! POST DESCRIPTION SUCCESSFULLY CREATED")

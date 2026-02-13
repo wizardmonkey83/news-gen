@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Publish Video</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main>
+        <section class="publish-section">
+            <div class="intro-text-container" style="text-align: center; margin-bottom: 2rem;">
+                <h1 class="header intro">Ready to Broadcast?</h1>
+                <p class="desc">Select a platform to distribute your generated content.</p>
+            </div>
+
+            <div class="video-frame" style="margin-bottom: 2rem;">
+                <video class="main-video" controls>
+                    <source src="{{ video_url }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+
+            <div class="publish-controls">
+                <div class="select-wrapper">
+                    <label for="social-select" class="input-label">Destination</label>
+                    <select id="social-select" class="dropdown-box">
+                        <option value="bluesky">Bluesky</option>
+                        <option value="youtube">YouTube</option>
+                    </select>
+                </div>
+
+                <button id="publish-btn" class="button primary">Publish Video</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.getElementById('publish-btn').addEventListener('click', () => {
+            const platform = document.getElementById('social-select').value;
+            alert(`Publishing to ${platform}...`);
+            
+            
+        });
+    </script>
+</body>
+</html>
