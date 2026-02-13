@@ -95,14 +95,22 @@ def save_post_description(state: AgentState):
 
 # once video is approved for publishing
 def publish_video_and_description(state: AgentState):
-    post_url = post_to_bsky(state["post_description"], state["storage_prefix"])
-    return {"post_url": post_url}
+    if state.get("post_platforms", []):
+        post_urls = {}
+        for site in state["post_platforms"]:
+            if site == "bsky":
+                bsky_post_url = post_to_bsky(state["post_description"], state["storage_prefix"])
+                post_urls["bsky_post_url"] = bsky_post_url
+            # more sites to come
+    
+        return {"post_urls": post_urls}
+    else:
+        return None
 
 # marks the topic in the google sheet as complete
 def mark_topic_complete(state: AgentState):
     mark_complete(state["post_url"])
-    # no need for this :)
-    return {"is_complete": True}
+    return None
 
 graph = StateGraph(AgentState)
 

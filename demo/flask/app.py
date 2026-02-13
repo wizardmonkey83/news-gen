@@ -56,7 +56,7 @@ def generate_video():
             "topic": topic,
             "num_extensions": num_extensions,
             "reference_image_uri": reference_image_uri,
-            "is_complete": False
+            "thread_id": thread_id,
         }
 
         final_state = agent_app.invoke(initial_state, config=config)
@@ -73,8 +73,37 @@ def generate_video():
 
 @app.route('/publish')
 def publish():
-    video_url = request.args.get('video')
-    return render_template('publish.html', video_url=video_url)
+    video_url = request.args.get("video")
+    thread_id = request.args.get("thread_id")
+    return render_template("publish.html", video_url=video_url, thread_id=thread_id)
+
+@app.route("/publish/content", methods=["POST"])
+def publish_content(thread_id):
+    data = request.get_json()
+    socials = data.get("socials", [])
+    thread_id = data.get("thread_id")
+
+    if not socials:
+        return jsonify({"error": "Select at least one platform."}), 400
+    
+    if not thread_id:
+        return jsonify({"error": "Missing session ID."}), 400
+
+    config = {"configurable": {"thread_id": thread_id}}
+
+    agent_app.update_state(config, {"post_platforms": socials})
+
+    try:
+        final_state = agent_app.invoke(None, config=config)
+        post_urls = final_state.get("post_urls", {})
+
+        return jsonify({"status": "success", "urls": post_urls})
+    
+    except Exception as e:
+        print(f"Publishing error: {e}")
+        return jsonify({"status": "error", "error": str(e)}), 500
+    
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=8080)

@@ -72,6 +72,7 @@
 </body>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        let currenttThreadId = null;
         const generateBtn = document.querySelector('.button.intro'); 
         const loadingContainer = document.getElementById('loading-container');
         const resultContainer = document.getElementById('result-container');
@@ -139,6 +140,8 @@
                     videoPlayer.load();
 
                     descriptionBox.textContent = data.description;
+
+                    currenttThreadId == data.currenttThreadId
                     
                     generateBtn.disabled = false;
                     generateBtn.style.opacity = '1';
@@ -163,7 +166,7 @@
         document.getElementById('continue-btn').addEventListener('click', () => {
              const currentVideoUrl = videoSource.src;
              if (currentVideoUrl) {
-                 window.location.href = `/publish?video=${encodeURIComponent(currentVideoUrl)}`;
+                 window.location.href = `/publish?video=${encodeURIComponent(currentVideoUrl)}&thread_id=${currenttThreadId}`;
              }
         });
     });

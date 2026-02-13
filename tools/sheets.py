@@ -93,7 +93,7 @@ def store_sources(sources: dict):
 
 # changing "in progress" to "complete" and inserting post urls ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # sheets docs: https://developers.google.com/workspace/sheets/api/guides/values
-def mark_complete(post_url):
+def mark_complete(post_urls):
     creds, _ = google.auth.default()
     service = build("sheets", "v4", credentials=creds)
 
@@ -128,6 +128,9 @@ def mark_complete(post_url):
             
             # theres gotta be a better way to do this
             update_range = f"E{i}:F{i}"
+
+            # TODO: make this able to handle multiple posts
+            post_url = post_urls.get("bsky_post_url", "")
 
             body = {
                 "values": [[str(date.today()), str(post_url)]]

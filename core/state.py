@@ -32,11 +32,10 @@ class AgentState(TypedDict):
 
     post_description: Optional[str]
 
-    # status tracking
-    is_complete: bool
-    error: Optional[str]
+    # list of sites to post to based on user selection
+    post_platforms: Optional[list]
 
-    post_url: Optional[str]
+    post_urls: Optional[dict]
 
 
 # feedback state ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

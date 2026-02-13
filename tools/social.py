@@ -1,10 +1,16 @@
-from atproto import Client, models
-from google.cloud import storage
+# general
 import tempfile
 import time
 import os
+import sys
 import requests
+import random
+from google.cloud import storage
 from config import MOCK_SOCIAL, BSKY_USERNAME, BSKY_PASSWORD, PROJECT_ID, BUCKET_NAME
+
+# bsky
+from atproto import Client, models
+
 
 # docs: https://docs.bsky.app/docs/get-started
 def post_to_bsky(description: str, storage_prefix: str):
@@ -104,3 +110,5 @@ def post_to_bsky(description: str, storage_prefix: str):
         finally:
             if os.path.exists(local_video_path):
                 os.remove(local_video_path)
+
+

@@ -1,47 +1,85 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Publish Video</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <main>
-        <section class="publish-section">
-            <div class="intro-text-container" style="text-align: center; margin-bottom: 2rem;">
-                <h1 class="header intro">Ready to Broadcast?</h1>
-                <p class="desc">Select a platform to distribute your generated content.</p>
-            </div>
+<section class="publish-section">
+    <div class="intro-text-container" style="text-align: center; margin-bottom: 2rem;">
+        <h1 class="header intro">Ready to Broadcast?</h1>
+        <p class="desc">Select platforms to distribute your generated content.</p>
+    </div>
 
-            <div class="video-frame" style="margin-bottom: 2rem;">
-                <video class="main-video" controls>
-                    <source src="{{ video_url }}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
+    <div class="video-frame" style="margin-bottom: 2rem;">
+        <video class="main-video" controls>
+            <source src="{{ video_url }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
 
-            <div class="publish-controls">
-                <div class="select-wrapper">
-                    <label for="social-select" class="input-label">Destination</label>
-                    <select id="social-select" class="dropdown-box">
-                        <option value="bluesky">Bluesky</option>
-                        <option value="youtube">YouTube</option>
-                    </select>
-                </div>
+    <div class="publish-controls" style="flex-direction: column; align-items: center; gap: 1.5rem;">
+        
+        <div class="checkbox-group" style="display: flex; gap: 2rem; background: #0B0A34; padding: 1rem 2rem; border-radius: 12px; border: 1px solid #56C8FF;">
+            <label class="custom-checkbox" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: #F8F8FF;">
+                <input type="checkbox" name="socials" value="bsky" style="accent-color: #56C8FF; transform: scale(1.2);">
+                Bluesky
+            </label>
+            <label class="custom-checkbox" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: #F8F8FF;">
+                <input type="checkbox" name="socials" value="youtube" style="accent-color: #E06F65; transform: scale(1.2);">
+                YouTube
+            </label>
+        </div>
 
-                <button id="publish-btn" class="button primary">Publish Video</button>
-            </div>
-        </section>
-    </main>
+        <input type="hidden" id="thread-id" value="{{ thread_id }}">
 
-    <script>
-        document.getElementById('publish-btn').addEventListener('click', () => {
-            const platform = document.getElementById('social-select').value;
-            alert(`Publishing to ${platform}...`);
-            
-            
-        });
-    </script>
-</body>
-</html>
+        <button id="publish-btn" class="button primary" style="width: 100%; max-width: 300px;">Publish Video</button>
+        <p id="publish-status" style="color: #aeb0cf; font-size: 0.9rem; margin-top: 0.5rem; display: none;"></p>
+    </div>
+</section>
+
+<script>
+    document.getElementById('publish-btn').addEventListener('click', async () => {
+        const publishBtn = document.getElementById('publish-btn');
+        const statusText = document.getElementById('publish-status');
+        const threadId = document.getElementById('thread-id').value;
+        
+        // Collect checked boxes
+        const checkboxes = document.querySelectorAll('input[name="socials"]:checked');
+        const selectedSocials = Array.from(checkboxes).map(cb => cb.value);
+
+        if (selectedSocials.length === 0) {
+            alert("Please select at least one platform.");
+            return;
+        }
+
+        // UI Loading State
+        publishBtn.disabled = true;
+        publishBtn.innerText = "Publishing...";
+        statusText.style.display = "block";
+        statusText.innerText = "Connecting to platforms and uploading...";
+
+        try {
+            const response = await fetch('/publish/content', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    thread_id: threadId,
+                    socials: selectedSocials
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                publishBtn.innerText = "Published!";
+                statusText.style.color = "#56C8FF";
+                statusText.innerHTML = `Success! View your post: <a href="${data.urls.bsky_post_url}" target="_blank" style="color: #E06F65;">Link</a>`;
+            } else {
+                throw new Error(data.error || "Unknown error");
+            }
+
+        } catch (error) {
+            console.error(error);
+            publishBtn.disabled = false;
+            publishBtn.innerText = "Publish Video";
+            statusText.style.color = "#E06F65";
+            statusText.innerText = "Error: " + error.message;
+        }
+    });
+</script>
