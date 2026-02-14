@@ -64,7 +64,7 @@ def generate_video():
         video_url = final_state.get("video_url")
         post_description = final_state.get("post_description")
         
-        return jsonify({"status": "success", "video_url": video_url, "description": post_description})
+        return jsonify({"status": "success", "video_url": video_url, "description": post_description, "thread_id": thread_id})
 
     except Exception as e:
         print(f"Error in /generate: {e}")
@@ -74,8 +74,9 @@ def generate_video():
 @app.route('/publish')
 def publish():
     video_url = request.args.get("video")
+    post_description = request.args.get("post_description")
     thread_id = request.args.get("thread_id")
-    return render_template("publish.html", video_url=video_url, thread_id=thread_id)
+    return render_template("publish.html", video_url=video_url, thread_id=thread_id, post_description=post_description)
 
 @app.route("/publish/content", methods=["POST"])
 def publish_content():

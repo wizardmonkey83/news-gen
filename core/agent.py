@@ -37,7 +37,7 @@ def load_prompts_and_get_topic(state: AgentState):
              storage_prefix = f"{topic}_{num}"
         else:
              storage_prefix = f"{topic}_{date.today()}"
-        return {"storage_prefix": storage_prefix}
+        return {"storage_prefix": storage_prefix, "topic": topic}
 
 # collects news sources and creates a summary. also creates audio_script
 def collect_news_and_summary(state: AgentState):
@@ -109,7 +109,8 @@ def publish_video_and_description(state: AgentState):
 
 # marks the topic in the google sheet as complete
 def mark_topic_complete(state: AgentState):
-    mark_complete(state["post_url"])
+    if not DEMO:
+        mark_complete(state["post_urls"])
     return None
 
 graph = StateGraph(AgentState)

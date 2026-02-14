@@ -21,10 +21,7 @@
                 <div class="video-header">
                     <span class="badge">Generated Description</span>
                 </div>
-                <p id="post-description">
-                    The Lorem ipum filling text is used by graphic designers, programmers and printers with the aim of occupying the spaces of a website, an advertising product or an editorial production whose final text is not yet ready.
-                    This expedient serves to get an idea of the finished product that will soon be printed or disseminated via digital channels.
-                </p>
+                <p id="post-description">{{ post_description }}</p>
             </div>
         </div>
 
@@ -39,6 +36,7 @@
             </div>
             <input type="hidden" id="thread-id" value="{{ thread_id }}">
             <button id="publish-btn" class="button">Publish &rarr;</button>
+            <p id="publish-status" style="margin-top: 1rem; font-size: 0.9rem; color: #aeb0cf; display: none;"></p>
         </div>
     </main>
 </body>
@@ -48,7 +46,6 @@
         const statusText = document.getElementById('publish-status');
         const threadId = document.getElementById('thread-id').value;
         
-        // Collect checked boxes
         const checkboxes = document.querySelectorAll('input[name="socials"]:checked');
         const selectedSocials = Array.from(checkboxes).map(cb => cb.value);
 
@@ -57,7 +54,6 @@
             return;
         }
 
-        // UI Loading State
         publishBtn.disabled = true;
         publishBtn.innerText = "Publishing...";
         statusText.style.display = "block";
