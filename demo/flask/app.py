@@ -78,7 +78,7 @@ def publish():
     return render_template("publish.html", video_url=video_url, thread_id=thread_id)
 
 @app.route("/publish/content", methods=["POST"])
-def publish_content(thread_id):
+def publish_content():
     data = request.get_json()
     socials = data.get("socials", [])
     thread_id = data.get("thread_id")

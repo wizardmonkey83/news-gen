@@ -101,7 +101,10 @@ def post_to_bsky(description: str, storage_prefix: str):
                 )
             )
 
-            new_post_url = post_response.uri
+            uri_parts = post_response.uri.split("/")
+            rkey = uri_parts[-1]
+
+            new_post_url = f"https://bsky.app/profile/{BSKY_USERNAME}/post/{rkey}"
 
             print("!!REAL!! POST PUBLISHED....")
 
