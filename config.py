@@ -28,7 +28,7 @@ DEMO = True
 MOCK_NEWS = False
 MOCK_VIDEO = False
 MOCK_DESC = False
-MOCK_SOCIAL = True
+MOCK_SOCIAL = False
 MOCK_SYNC = True
 # simple videos are videos where both audio and visuals are created together. as opposed to generating them seperately, and splicing together.
 SIMPLE_VIDEO = False
