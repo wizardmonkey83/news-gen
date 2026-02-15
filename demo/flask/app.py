@@ -76,6 +76,10 @@ def publish():
     video_url = request.args.get("video")
     post_description = request.args.get("post_description")
     thread_id = request.args.get("thread_id")
+
+    if thread_id == "null" or thread_id is None:
+        return "Error: Session ID lost. Please go back and regenerate.", 400
+
     return render_template("publish.html", video_url=video_url, thread_id=thread_id, post_description=post_description)
 
 @app.route("/publish/content", methods=["POST"])

@@ -72,7 +72,6 @@
 </body>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        let currentThreadId = null;
         const generateBtn = document.querySelector('.button.intro'); 
         const loadingContainer = document.getElementById('loading-container');
         const resultContainer = document.getElementById('result-container');
@@ -84,6 +83,11 @@
         const videoPlayer = document.querySelector('.main-video');
         const videoSource = videoPlayer.querySelector('source');
         const descriptionBox = document.getElementById("post-description");
+
+        const threadIdStore = document.createElement("input");
+        threadIdStore.type = "hidden";
+        threadIdStore.id = "stored-thread-id";
+        document.body.appendChild(threadIdStore);
 
         generateBtn.addEventListener('click', async () => {
             const topic = topicInput.value.trim();
@@ -132,7 +136,7 @@
 
                 clearInterval(stepInterval);
 
-                if (data.status === 'success' && data.video_url && data.description) {
+                if (data.status === 'success' && data.video_url && data.description && data.thread_id) {
                     loadingContainer.style.display = 'none';
                     resultContainer.style.display = 'block';
                     
@@ -141,7 +145,8 @@
 
                     descriptionBox.textContent = data.description;
 
-                    currentThreadId == data.threadId
+                    threadIdStore.value = data.thread_id;
+                    console.log("Thread ID saved:", data.thread_id);
                     
                     generateBtn.disabled = false;
                     generateBtn.style.opacity = '1';
@@ -164,10 +169,15 @@
         });
         
         document.getElementById('continue-btn').addEventListener('click', () => {
-             const currentVideoUrl = videoSource.src;
-             const currentDescription = descriptionBox.textContent
-             if (currentVideoUrl) {
-                 window.location.href = `/publish?video=${encodeURIComponent(currentVideoUrl)}&thread_id=${currentThreadId}&post_description=${currentDescription}`;
+            const currentVideoUrl = videoSource.src;
+            const currentDescription = descriptionBox.textContent
+            const savedThreadId = document.getElementById("stored-thread-id").value;
+            
+            if (currentVideoUrl && savedThreadId) {
+                 window.location.href = `/publish?video=${encodeURIComponent(currentVideoUrl)}&thread_id=${savedThreadId}&post_description=${encodeURIComponent(currentDescription)}`;
+             } else {
+                 console.error("Missing data:", { video: currentVideoUrl, thread: savedThreadId });
+                 alert("Error: Missing Session ID. Please regenerate the video.");
              }
         });
     });
