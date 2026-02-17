@@ -101,6 +101,7 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
         else:
             cut_visual = load_synced_video
         
+        print("!!REAL!! CUT VISUAL CREATED...")
         
         load_audio = AudioFileClip(local_audio_path)
         completed_video = cut_visual.with_audio(load_audio)
@@ -108,6 +109,7 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_complete_video:
             local_complete_video_path = temp_complete_video.name
 
+        print("!!REAL!! WRITING COMPLETED VIDEO FILE...")
         completed_video.write_videofile(local_complete_video_path)
 
         load_audio.close()
@@ -119,6 +121,8 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
 
         complete_video_blob = bucket.blob(f"{storage_prefix}/video.mp4")
         complete_video_blob.upload_from_filename(local_complete_video_path)
+
+        print("!!REAL!! UPLOADED COMPELTED VIDEO TO BUCKET...")
 
         signed_url = generate_signed_url(BUCKET_NAME, f"{storage_prefix}/video.mp4")
 

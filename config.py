@@ -33,6 +33,7 @@ MOCK_SOCIAL = False
 MOCK_SYNC = True
 # simple videos are videos where both audio and visuals are created together. as opposed to generating them seperately, and splicing together.
 SIMPLE_VIDEO = True
+SIMPLE_AUDIO = True
 
 # for feedback
 MOCK_BSKY_METRICS = False

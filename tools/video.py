@@ -137,6 +137,8 @@ def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: floa
 
 
     elif SIMPLE_VIDEO:
+        print("!!REAL!! GENERATING SIMPLE VIDEO...")
+
         filename = "visual.mp4"
         if not LOCAL_DEV:
             local_path = f"/tmp/{filename}"
@@ -147,7 +149,7 @@ def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: floa
 
         operation = client.models.generate_videos(
             model=SIMPLE_VIDEO_MODEL,
-            prompt=json.dumps(VISUAL_SCRIPT_GUIDELINES_PROMPT),
+            prompt="Create a video of a butterfly playing soccer with a bobcat.",
         )
 
         while not operation.done:
@@ -155,7 +157,7 @@ def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: floa
             operation = client.operations.get(operation)
 
         if operation.error:
-            print(f"Error generating first video: {operation.error}")
+            raise Exception(f"Error generating first video: {operation.error}")
 
         generated_video = operation.response.generated_videos[0]
 
@@ -175,7 +177,7 @@ def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: floa
         if os.path.exists(local_path):
             os.remove(local_path)
 
-        print("!!REAL!! SUCCESSFULLY CREATED VIDEO")
+        print("!!REAL!! SUCCESSFULLY CREATED SIMPLE VIDEO")
 
         return {
             "gs_link": f"gs://{BUCKET_NAME}/{storage_path}", 
