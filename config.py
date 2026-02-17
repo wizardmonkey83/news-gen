@@ -22,6 +22,7 @@ DID_API_KEY = config("DID_API_KEY")
 
 TEXT_MODEL = "gemini-2.5-pro"
 VIDEO_MODEL = "veo-3.1-generate-preview"
+SIMPLE_VIDEO_MODEL = "veo-3.1-fast-generate-preview"
 
 # for agent
 DEMO = True
@@ -31,7 +32,7 @@ MOCK_DESC = False
 MOCK_SOCIAL = False
 MOCK_SYNC = True
 # simple videos are videos where both audio and visuals are created together. as opposed to generating them seperately, and splicing together.
-SIMPLE_VIDEO = False
+SIMPLE_VIDEO = True
 
 # for feedback
 MOCK_BSKY_METRICS = False

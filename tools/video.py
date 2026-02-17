@@ -5,7 +5,7 @@ import tempfile
 from google import genai
 from google.genai import types
 from google.cloud import storage
-from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, PROJECT_ID, LOCATION, LOCAL_DEV, MULTIPLE_VIDEO, DEMO, VISUAL_EXTENSION_PROMPT, SIMPLE_VIDEO, VISUAL_SCRIPT_NEGATIVE_PROMPT, DID_API_KEY, VISUAL_SCRIPT_GUIDELINES_PROMPT
+from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, PROJECT_ID, LOCATION, LOCAL_DEV, MULTIPLE_VIDEO, DEMO, VISUAL_EXTENSION_PROMPT, SIMPLE_VIDEO, VISUAL_SCRIPT_NEGATIVE_PROMPT, DID_API_KEY, VISUAL_SCRIPT_GUIDELINES_PROMPT, SIMPLE_VIDEO_MODEL
 import math
 import requests
 from .sync import generate_signed_url
@@ -124,6 +124,56 @@ def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: floa
             # cleanup
             if os.path.exists(local_path):
                 os.remove(local_path)
+
+        print("!!REAL!! SUCCESSFULLY CREATED VIDEO")
+
+        return {
+            "gs_link": f"gs://{BUCKET_NAME}/{storage_path}", 
+            "visuals_length": final_video_duration
+        }
+    
+
+
+
+
+    elif SIMPLE_VIDEO:
+        filename = "visual.mp4"
+        if not LOCAL_DEV:
+            local_path = f"/tmp/{filename}"
+        else:
+            local_path = os.path.join(tempfile.gettempdir(), filename)
+
+        num_extensions = 0
+
+        operation = client.models.generate_videos(
+            model=SIMPLE_VIDEO_MODEL,
+            prompt=json.dumps(VISUAL_SCRIPT_GUIDELINES_PROMPT),
+        )
+
+        while not operation.done:
+            time.sleep(10)
+            operation = client.operations.get(operation)
+
+        if operation.error:
+            print(f"Error generating first video: {operation.error}")
+
+        generated_video = operation.response.generated_videos[0]
+
+        storage_client = storage.Client(project=PROJECT_ID)
+        storage_path = f"{storage_prefix}/{filename}"
+        bucket = storage_client.bucket(BUCKET_NAME)
+        blob = bucket.blob(storage_path)
+
+        final_video_duration = 8.0
+
+        generated_video.video.save(local_path)
+
+        # finally save
+        blob.upload_from_filename(local_path)
+
+        # cleanup
+        if os.path.exists(local_path):
+            os.remove(local_path)
 
         print("!!REAL!! SUCCESSFULLY CREATED VIDEO")
 

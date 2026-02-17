@@ -91,10 +91,8 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
             load_synced_video = VideoFileClip(local_synced_video_path)
         else:
             load_synced_video = VideoFileClip(local_visual_path)
+            visual_length = load_synced_video.duration
 
-        # in order to avoid too much blank spac at the end of the video
-        with VideoFileClip(local_visual_path) as temp_visual_clip:
-            visual_length = temp_visual_clip.duration
         tail_secs = visual_length - audio_length
         max_tail_secs = 1.0
 
