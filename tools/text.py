@@ -9,14 +9,16 @@ client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
 def generate_description(prompt: str, news_summary: str):
     if not MOCK_DESC and not MOCK_VIDEO:
         print("!!REAL!! GENERATING POST DESCRIPTION....")
+        try:
+            response = client.models.generate_content(
+                model=TEXT_MODEL, 
+                contents=[news_summary, str(prompt)]
+            )
 
-        response = client.models.generate_content(
-            model=TEXT_MODEL, 
-            contents=[news_summary, str(prompt)]
-        )
-
-        print("!!REAL!! POST DESCRIPTION SUCCESSFULLY CREATED")
-        return response.text
+            print("!!REAL!! POST DESCRIPTION SUCCESSFULLY CREATED")
+            return response.text
+        except Exception as e:
+            return Exception(f"Error generating post description: {e}")
     else:
         print("GENERATING MOCK POST DESCRIPTION....")
         print("SUCCESSFULLY CREATED MOCK POST DESCRIPTION")

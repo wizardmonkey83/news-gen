@@ -5,7 +5,7 @@ import tempfile
 from google import genai
 from google.genai import types
 from google.cloud import storage
-from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, PROJECT_ID, LOCATION, LOCAL_DEV, MULTIPLE_VIDEO, DEMO, VISUAL_EXTENSION_PROMPT, SIMPLE_VIDEO, VISUAL_SCRIPT_NEGATIVE_PROMPT, DID_API_KEY, VISUAL_SCRIPT_GUIDELINES_PROMPT, SIMPLE_VIDEO_MODEL
+from config import VIDEO_MODEL, MOCK_VIDEO, BUCKET_NAME, PROJECT_ID, LOCATION, LOCAL_DEV, REUSE_VIDEO, MULTIPLE_VIDEO, DEMO, VISUAL_EXTENSION_PROMPT, SIMPLE_VIDEO, VISUAL_SCRIPT_NEGATIVE_PROMPT, DID_API_KEY, VISUAL_SCRIPT_GUIDELINES_PROMPT, SIMPLE_VIDEO_MODEL
 import math
 import requests
 from .sync import generate_signed_url
@@ -21,7 +21,7 @@ client = genai.Client(
 # generates only the visuals for the video -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # veo docs: https://ai.google.dev/gemini-api/docs/video?example=dialogue
 def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: float, reference_image_uri: str = None):
-    if not MOCK_VIDEO and not SIMPLE_VIDEO:
+    if not MOCK_VIDEO and not SIMPLE_VIDEO and not REUSE_VIDEO:
         filename = "visual.mp4"
         if not LOCAL_DEV:
             local_path = f"/tmp/{filename}"
@@ -133,10 +133,7 @@ def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: floa
         }
     
 
-
-
-
-    elif SIMPLE_VIDEO:
+    elif SIMPLE_VIDEO and not REUSE_VIDEO:
         print("!!REAL!! GENERATING SIMPLE VIDEO...")
 
         filename = "visual.mp4"
@@ -182,6 +179,12 @@ def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: floa
         return {
             "gs_link": f"gs://{BUCKET_NAME}/{storage_path}", 
             "visuals_length": final_video_duration
+        }
+    
+    elif REUSE_VIDEO:
+        return {
+            "gs_link": f"gs://{BUCKET_NAME}/reuse_video.mp4",
+            "visuals_length": 13
         }
     
 
