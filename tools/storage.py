@@ -1,7 +1,11 @@
 from datetime import date
 from google.cloud import storage, firestore
 import tempfile
+import sys
 import os
+
+sys.path.append("../")
+
 import config
 from config import PROJECT_ID, BUCKET_NAME, MOCK_DESC
 
@@ -27,10 +31,10 @@ def load_prompts_to_config():
     dict_video_extension_prompt = video_extension_snap.to_dict()
     dict_rss_analysis_prompt = rss_analysis_snap.to_dict()
 
-    config.VIDEO_PROMPT = dict_video_prompt
+    config.VISUAL_SCRIPT_GUIDELINES_PROMPT = dict_video_prompt
     config.DESCRIPTION_PROMPT = dict_desc_prompt
     config.METRIC_REVIEW_PROMPT = dict_metric_review_prompt
-    config.VIDEO_EXTENSION_PROMPT = dict_video_extension_prompt
+    config.VISUAL_EXTENSION_PROMPT = dict_video_extension_prompt
     config.RSS_FEED_ANALYSIS_PROMPT = dict_rss_analysis_prompt
 
     return True
@@ -111,8 +115,8 @@ def bsky_prompt_changes_to_firestore(thread: str):
         dict_desc_response = dict_payload["new_desc_prompt"]
 
 
-    video_prompt_ref = client.collection("news_gen_prompts").document("robo_anchor_video_prompt")
-    desc_prompt_ref = client.collection("news_gen_prompts").document("robo_anchor_desc_prompt")
+    video_prompt_ref = client.collection("news_gen_prompts").document("visual_script_guidelines_prompt")
+    desc_prompt_ref = client.collection("news_gen_prompts").document("description_prompt")
 
     curr_video_snap = video_prompt_ref.get()
     curr_desc_snap = desc_prompt_ref.get()
@@ -129,3 +133,6 @@ def bsky_prompt_changes_to_firestore(thread: str):
     
     print("!!REAL!! PROMPT UPDATES SAVED TO FIRESTORE")
     return True
+
+if __name__ == "__main__":
+    load_prompts_to_config()

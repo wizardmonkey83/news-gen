@@ -32,8 +32,8 @@ MOCK_DESC = False
 MOCK_SOCIAL = False
 MOCK_SYNC = True
 # simple videos are videos where both audio and visuals are created together. as opposed to generating them seperately, and splicing together.
-SIMPLE_VIDEO = True
-SIMPLE_AUDIO = True
+SIMPLE_VIDEO = False
+SIMPLE_AUDIO = False
 
 # for feedback
 MOCK_BSKY_METRICS = False
@@ -43,7 +43,7 @@ LOCAL_DEV = True
 LOCAL_FIRESTORE_METRICS = True
 
 # for agent
-MULTIPLE_VIDEO = False
+MULTIPLE_VIDEO = True
 RSS_FEED = False
 
 METRIC_REVIEW_PROMPT = {
@@ -198,42 +198,60 @@ RSS_FEED_ANALYSIS_PROMPT = {
   }
 }
 
-# used for summarizing the raw post_metrics 
+# used for summarizing the raw post_metrics gathered from social media
 SUMMARIZE_RAW_POST_METRICS_PROMPT = {
-    
+    "role": {
+        "identity": "You are the Senior Data Analyst for 'ANCHOR-9', a robotic tech news broadcast.",
+        "goal": "Translate raw social media JSON data into a concise, human-readable (str) executive summary of audience sentiment."
+    },
+    "task": "Review the provided JSON metrics (Likes, Reposts, Replies, and specific user comments) for a recent social media post. Provide a short, plain-text summary of the context of the post followed by how the audience reacted.",
+    "analysis_guidelines": [
+        "Identify the overall sentiment (e.g., overwhelmingly positive, highly critical, mixed).",
+        "Call out specific recurring themes in the replies (e.g., 'multiple users complained the voice is too fast', 'users praised the lighting').",
+        "Note if the engagement volume (likes/reposts) is high or low compared to the amount of replies."
+    ],
+    "output_requirements": {
+        "format": "Return ONLY the summary text. Do not use markdown, bolding, or bullet points.",
+        "length": "Keep the summary brief and impactful, between 4 to 6 sentences."
+    }
 }
 
 
 # structured output docs: https://ai.google.dev/gemini-api/docs/structured-output?example=recipes
-class ToneAndComedicDNA(BaseModel):
-    tone_keywords: Optional[List[str]] = Field(description="Keywords defining the emotional and stylistic tone of the broadcast.")
-    comedy_sources: Optional[List[str]] = Field(description="Specific sources of humor derived from tech culture and robot logic.")
+# visuals_script_guidelines_prompt
+class VideoGenerationContext(BaseModel):
+    goal: Optional[str] = Field(description="The primary goal and type of video generation.")
+    primary_directive: Optional[str] = Field(description="The main instruction for animating the image and maintaining composition.")
 
-class HostPersona(BaseModel):
-    name: Optional[str] = Field(description="The name or designation of the robot anchor.")
-    summary: Optional[str] = Field(description="A summary of the host's personality, perspective, and limitations regarding human behavior.")
+class ReferenceFidelity(BaseModel):
+    instruction: Optional[str] = Field(description="Instructions regarding the reference image as the absolute ground truth.")
+    background_lock: Optional[str] = Field(description="Instructions for maintaining the background environment pixel-stable.")
 
-class VoiceAndDelivery(BaseModel):
-    pace: Optional[str] = Field(description="The speed and rhythm of the host's speech.")
-    emotion: Optional[str] = Field(description="How the host simulates or displays emotion (e.g., status lights).")
-    tics_and_catchphrases: Optional[List[str]] = Field(description="Recurring phrases or verbal habits used by the host.")
-    core_comedy_flaws: Optional[List[str]] = Field(description="Personality flaws or cognitive biases that serve as sources of humor.")
+class Subject(BaseModel):
+    gaze: Optional[str] = Field(description="Instructions for the subject's head pose, alignment, and eye contact.")
 
-class VisualAndSetDesign(BaseModel):
-    primary_shot: Optional[str] = Field(description="Description of the main camera framing and composition.")
-    on_screen_graphics: Optional[str] = Field(description="Details on overlays, lower thirds, tickers, and title bugs.")
-    motion_and_efficiency: Optional[str] = Field(description="Guidelines for camera movement and visual variety.")
+class CameraDirection(BaseModel):
+    type: Optional[str] = Field(description="The type of camera shot (e.g., static).")
+    movement: Optional[str] = Field(description="Instructions for camera movement (or lack thereof).")
+    focus: Optional[str] = Field(description="Instructions for camera focus and perspective.")
+    lens: Optional[str] = Field(description="Specifications for the camera lens and framing.")
 
-# be aware of what fields that are able to be edited. some guidelines should remain immutable. 
+class VisualPrompt(BaseModel):
+    video_generation_context: VideoGenerationContext
+    reference_fidelity: ReferenceFidelity
+    subject: Subject
+    camera_direction: CameraDirection
+
 class VideoPromptModel(BaseModel):
-    tone_and_comedic_dna: ToneAndComedicDNA = Field(description="Guidelines for the show's humor and stylistic tone.")
-    host_persona: HostPersona = Field(description="Identity and personality details of the robot host.")
-    voice_and_delivery: VoiceAndDelivery = Field(description="Instructions for the host's speech patterns and behavioral quirks.")
-    visual_and_set_design: VisualAndSetDesign = Field(description="Specifications for the visual look, graphics, and camera work.")
+    visual_prompt: VisualPrompt = Field(description="The complete set of instructions for the video generation model.")
 
 
-class DescriptionPromptModel(BaseModel):
+# description_prompt
+class DescriptionPrompt(BaseModel):
     role: Optional[List[str]] = Field(description="The persona and perspective the writer must adopt.")
     task: Optional[str] = Field(description="The specific objective, including character limits and format.")
     tone: Optional[List[str]] = Field(description="Stylistic guidelines for the text, including vocabulary and attitude.")
     example_outputs: Optional[List[str]] = Field(description="Examples of successful outputs to guide the generation.")
+
+class DescriptionPromptModel(BaseModel):
+    description_prompt: DescriptionPrompt = Field(description="The complete prompt structure for generating the social media description.")

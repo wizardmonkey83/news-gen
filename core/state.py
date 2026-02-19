@@ -45,6 +45,5 @@ class FeedbackState(TypedDict):
 
     post_metric_summary: Optional[str]
     
-    # this needs to be json format? 
     dict_video_response: Optional[dict]
     dict_desc_response: Optional[dict]

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feedback Loop</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='feedback.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+</head>
+<body>
+    <main class="feedback-layout">
+        <div class="feedback-top-row">
+            <section class="input-section">
+                <div class="intro-text-container">
+                    <h1 class="header intro">Welcome Back, Ben</h1>
+                    <p class="desc">Review post engagement for the past week.</p>
+                    <p class="note">Note: Seperate each url with a comma (url, url).</p>
+                </div>
+                <div class="input-container">
+                    <div class="input-box-container">
+                        <input class="input-box feedback" placeholder="Enter urls..." maxlength="500">
+                    </div>
+                </div>
+                <button class="button feedback">Generate Analysis</button>
+            </section>
+
+            <section class="summary-container">
+                <div id="loading-container" class="loading-wrapper" style="display: none;">
+                    <div class="loader-orbit">
+                        <div class="planet"></div>
+                        <div class="orbit"></div>
+                    </div>
+                    <h3 class="status-text">Analyzing Sentiment...</h3>
+                    <p class="status-subtext">Scraping threads, calculating metrics, and drafting improvements.</p>
+                </div>
+
+                <div id="summary-box" class="feedback-frame summary-red" style="display: none;">
+                    <div class="video-header">
+                        <span class="badge">Engagement Summary</span>
+                    </div>
+                    <p id="engagement-summary" class="summary-text"></p>
+                </div>
+            </section>
+        </div>
+
+        <section id="prompts-section" class="prompts-container" style="display: none;">
+            <div class="tab-container">
+                <button class="tab-btn active" onclick="switchTab('video')">Video Prompt</button>
+                <button class="tab-btn" onclick="switchTab('desc')">Description Prompt</button>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="feedback-frame old-yellow">
+                    <div class="video-header">
+                        <span class="badge" style="background: #ffd93d; color: #000;">Current (Read-Only)</span>
+                    </div>
+                    <div id="editor-old" class="json-editor"></div>
+                </div>
+
+                <div class="feedback-frame new-green">
+                    <div class="video-header">
+                        <span class="badge" style="background: #6bff6b; color: #000;">New (Editable)</span>
+                    </div>
+                    <div id="editor-new" class="json-editor"></div>
+                </div>
+            </div>
+
+            <div class="action-area">
+                <p class="verification-text">Edit the 'New' prompt above if needed, then commit changes.</p>
+                <button id="commit-btn" class="button">Approve & Deploy Updates &rarr;</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let sessionData = {}; 
+        let currentTab = 'video';
+
+        const editorOld = ace.edit("editor-old");
+        editorOld.setTheme("ace/theme/twilight");
+        editorOld.session.setMode("ace/mode/json");
+        editorOld.setReadOnly(true);
+        editorOld.setShowPrintMargin(false);
+
+        const editorNew = ace.edit("editor-new");
+        editorNew.setTheme("ace/theme/twilight");
+        editorNew.session.setMode("ace/mode/json");
+        editorNew.setShowPrintMargin(false);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const generateBtn = document.querySelector('.button.feedback');
+            const inputField = document.querySelector('.input-box.feedback');
+            const loadingContainer = document.getElementById('loading-container');
+            const summaryBox = document.getElementById('summary-box');
+            const promptsSection = document.getElementById('prompts-section');
+            const commitBtn = document.getElementById('commit-btn');
+            
+
+            generateBtn.addEventListener('click', async () => {
+                const urls = inputField.value.trim();
+                if (!urls) { alert("Please enter at least one URL."); return; }
+
+
+                summaryBox.style.display = 'none';
+                promptsSection.style.display = 'none';
+                loadingContainer.style.display = 'flex';
+                loadingContainer.style.display = 'flex';
+                generateBtn.disabled = true;
+                generateBtn.innerText = "Processing...";
+
+                try {
+                    const formData = new FormData();
+                    formData.append('urls', urls);
+
+                    const response = await fetch('/feedback/collect', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        sessionData = data;
+                        
+                        document.getElementById("engagement-summary").innerText = data.post_metric_summary;
+
+                        switchTab('video');
+
+                        loadingContainer.style.display = 'none';
+                        loadingContainer.style.display = 'none';
+                        summaryBox.style.display = 'block';
+                        promptsSection.style.display = 'flex';
+                        generateBtn.innerText = "Regenerate Analysis";
+                        generateBtn.disabled = false;
+                    } else {
+                        throw new Error(data.error || "Unknown error");
+                    }
+                } catch (error) {
+                    loadingContainer.style.display = 'none';
+                    generateBtn.disabled = false;
+                    generateBtn.innerText = "Generate Analysis";
+                    alert("Error: " + error.message);
+                }
+            });
+
+            commitBtn.addEventListener('click', async () => {
+                saveCurrentEdits();
+
+                commitBtn.innerText = "Deploying...";
+                commitBtn.disabled = true;
+
+                try {
+                    const response = await fetch('/feedback/commit', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            thread_id: sessionData.thread_id,
+                            new_video_prompt: sessionData.new_video_prompt,
+                            new_desc_prompt: sessionData.new_desc_prompt
+                        })
+                    });
+
+                    const resData = await response.json();
+                    if(resData.status === 'success'){
+                        commitBtn.innerText = "Deployed Successfully!";
+                        alert("System Updated! The new prompts are now live.");
+                    } else {
+                        throw new Error(resData.error);
+                    }
+                } catch (e) {
+                    commitBtn.innerText = "Try Again";
+                    commitBtn.disabled = false;
+                    alert("Commit failed: " + e.message);
+                }
+            });
+        });
+
+        window.switchTab = function(tabName) {
+            saveCurrentEdits();
+
+            currentTab = tabName;
+
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            if (tabName === 'video') {
+                buttons[0].classList.add('active');
+            } else {
+                buttons[1].classList.add('active');
+            }
+
+            if(tabName === 'video') {
+                editorOld.setValue(JSON.stringify(sessionData.old_video_prompt, null, 4), -1);
+                editorNew.setValue(JSON.stringify(sessionData.new_video_prompt, null, 4), -1);
+            } else {
+                editorOld.setValue(JSON.stringify(sessionData.old_desc_prompt, null, 4), -1);
+                editorNew.setValue(JSON.stringify(sessionData.new_desc_prompt, null, 4), -1);
+            }
+        }
+
+        function saveCurrentEdits() {
+            try {
+                const currentJson = JSON.parse(editorNew.getValue());
+                if(currentTab === 'video') {
+                    sessionData.new_video_prompt = currentJson;
+                } else {
+                    sessionData.new_desc_prompt = currentJson;
+                }
+            } catch (e) {
+                console.warn("Invalid JSON in editor, changes not saved to state.");
+            }
+        }
+    </script>
+</body>
+</html>

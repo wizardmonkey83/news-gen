@@ -33,7 +33,7 @@ def collect_news(topic: str):
                 response = client.models.generate_content(
                     model=TEXT_MODEL,
                     # consider adding region to the search
-                    contents=f"Today is {today}. Search for the latest news about: {topic}",
+                    contents=f"Today is {today}. Search for news about: {topic}. Generate as detailed a summary as possible.",
                     config=config,
                 )
 

@@ -3,7 +3,7 @@ from langgraph.graph import StateGraph, START, END
 from langchain_core.runnables import RunnableConfig
 from langgraph_checkpoint_firestore import FirestoreSaver
 from google.cloud import firestore
-from config import PROJECT_ID
+from config import PROJECT_ID, DEMO
 import random
 from datetime import date
 
@@ -16,8 +16,12 @@ from tools.storage import bsky_metrics_to_firestore, bsky_prompt_changes_to_fire
 
 
 def starter(state: FeedbackState):
-    bsky_post_urls = get_bsky_url()
-    return {"bsky_post_urls": bsky_post_urls}
+    if not state.get("bsky_post_urls"):
+        bsky_post_urls = get_bsky_url()
+        return {"bsky_post_urls": bsky_post_urls}
+    
+    else: 
+        return {}
 
 # extracts metrics/engagement from post 
 def extracter(state: FeedbackState):

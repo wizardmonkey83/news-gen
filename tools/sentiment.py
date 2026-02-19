@@ -12,38 +12,49 @@ client = genai.Client(
 # structured output docs: https://ai.google.dev/gemini-api/docs/structured-output?example=recipe
 def review_bsky_metrics(metrics: dict):
     if LOCAL_FIRESTORE_METRICS:
-        json_metrics = json.dumps(metrics)
+        try:
+            print("!!REAL!! REVIEWING VIDEO PROMPT...")
 
-        video_response = client.models.generate_content(
-            model=TEXT_MODEL,
-            contents=[
-                json.dumps(METRIC_REVIEW_PROMPT),
-                json_metrics,
-            ],
-            config={
-                "response_mime_type": "application/json",
-                "response_json_schema": VideoPromptModel.model_json_schema(),
-            },
-        )
+            json_metrics = json.dumps(metrics)
 
-        json_video_response = VideoPromptModel.model_validate_json(video_response.text)
+            video_response = client.models.generate_content(
+                model=TEXT_MODEL,
+                contents=[
+                    json.dumps(METRIC_REVIEW_PROMPT),
+                    json_metrics,
+                ],
+                config={
+                    "response_mime_type": "application/json",
+                    "response_json_schema": VideoPromptModel.model_json_schema(),
+                },
+            )
 
-        desc_response = client.models.generate_content(
-            model=TEXT_MODEL,
-            contents=[
-                json.dumps(METRIC_REVIEW_PROMPT),
-                json_metrics
-            ],
-            config={
-                "response_mime_type": "application/json",
-                "response_json_schema": DescriptionPromptModel.model_json_schema(),
-            },
-        )
+            json_video_response = VideoPromptModel.model_validate_json(video_response.text)
 
-        json_desc_response = DescriptionPromptModel.model_validate_json(desc_response.text)
+            print("!!REAL!! VIDEO PROMPT REVIEWED")
+            print("!!REAL!! REVIEWING DESC PROMPT...")
 
-        # using .model_dump() since "json_video_response" is an object, not a string 
-        dict_video_response = json_video_response.model_dump()
-        dict_desc_response = json_desc_response.model_dump()
+            desc_response = client.models.generate_content(
+                model=TEXT_MODEL,
+                contents=[
+                    json.dumps(METRIC_REVIEW_PROMPT),
+                    json_metrics
+                ],
+                config={
+                    "response_mime_type": "application/json",
+                    "response_json_schema": DescriptionPromptModel.model_json_schema(),
+                },
+            )
 
-        return dict_video_response, dict_desc_response
+            json_desc_response = DescriptionPromptModel.model_validate_json(desc_response.text)
+
+            # using .model_dump() since "json_video_response" is an object, not a string 
+            dict_video_response = json_video_response.model_dump()
+            dict_desc_response = json_desc_response.model_dump()
+
+            print("!!REAL!! DESC PROMPT REVIEWED")
+
+            return dict_video_response, dict_desc_response
+
+        except Exception as e:
+            raise Exception(f"Error in review_bsky_metrics: {e}")

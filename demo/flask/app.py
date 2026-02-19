@@ -6,11 +6,13 @@ root_dir = os.path.dirname(os.path.dirname(current_dir))
 sys.path.append(root_dir)
 
 from flask import Flask, render_template, request, jsonify
-from google.cloud import storage
+from google.cloud import storage, firestore
 import uuid
 
-from config import BUCKET_NAME, PROJECT_ID
+from config import BUCKET_NAME, PROJECT_ID, VISUAL_SCRIPT_GUIDELINES_PROMPT, DESCRIPTION_PROMPT
+from tools.storage import bsky_to_firestore_recursive_update, bsky_prompt_changes_to_firestore
 from core.agent import app as agent_app
+from core.feedback import app as feedback_app
 
 app = Flask(__name__)
 
@@ -109,6 +111,66 @@ def publish_content():
         return jsonify({"status": "error", "error": str(e)}), 500
     
 
+
+@app.route("/feedback")
+def feedback():
+    return render_template("feedback.html")
+
+@app.route("/feedback/collect", methods=["POST"])
+def collect_feedback():
+    try:
+
+        urls = request.form.get('urls')
+
+        if isinstance(urls, str):
+            url_list = [u.strip() for u in urls.split(",")]
+        else:
+            url_list = urls
+        
+
+        thread_id = f"feedback_demo_{uuid.uuid4()}"
+        config = {"configurable": {"thread_id": thread_id}}
+
+        initial_state = {
+            "bsky_post_urls": url_list
+        }
+
+        final_state = feedback_app.invoke(initial_state, config=config)
+
+        post_metric_summary = final_state.get("post_metric_summary")
+        new_video_prompt = final_state.get("dict_video_response")
+        new_desc_prompt = final_state.get("dict_desc_response")
+        
+        return jsonify({"status": "success", "post_metric_summary": post_metric_summary, "old_video_prompt": VISUAL_SCRIPT_GUIDELINES_PROMPT, "old_desc_prompt": DESCRIPTION_PROMPT, "new_video_prompt": new_video_prompt, "new_desc_prompt": new_desc_prompt, "thread_id": thread_id})
+
+    except Exception as e:
+        print(f"Error in /generate: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/feedback/commit", methods=["POST"])
+def commit_feedback():
+    try:
+        data = request.get_json()
+        thread_id = data.get("thread_id")
+        
+        final_video_prompt = data.get("new_video_prompt") 
+        final_desc_prompt = data.get("new_desc_prompt")
+        
+        client = firestore.Client(project=PROJECT_ID)
+        staging_ref = client.collection("news_gen_prompt_reviews").document(thread_id)
+        
+        staging_ref.update({
+            "new_video_prompt": final_video_prompt,
+            "new_desc_prompt": final_desc_prompt,
+            "status": "complete"
+        })
+        
+        bsky_prompt_changes_to_firestore(thread_id)
+
+        return jsonify({"status": "success"})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=8080)
