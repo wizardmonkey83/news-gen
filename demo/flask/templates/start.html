@@ -16,18 +16,29 @@
                 </p>
             </div>
             <div class="input-container">
-                <div class="input-box-container">
-                    <input class="input-box" placeholder="Enter topic..." maxlength="200">
-                    <input class="input-box" type="number" id="extensions-input" placeholder="Len" min="0" max="10" style="margin-top: 1rem;">
+                <div class="input-box-container" style="justify-content: flex-start; gap: 1rem;">
+                    <input class="input-box topic-input" placeholder="Enter topic..." maxlength="200" style="flex-grow: 1;">
+                    <select id="video-length-select" class="input-box" style="cursor: pointer;">
+                        <option value="8">8 Seconds</option>
+                        <option value="15">15 Seconds</option>
+                        <option value="22">22 Seconds</option>
+                        <option value="29">29 Seconds</option>
+                        <option value="36">36 Seconds</option>
+                    </select>
                 </div>
-                <div class="upload-container">
-                    <input type="file" id="file-upload" class="file-input" accept=".png" hidden>
-                    
-                    <div class="upload-content">
-                        <h3 class="upload-header">Choose a file or drag & drop it here</h3>
-                        <p class="upload-desc">PNG, up to 10MB</p>
-                        
-                        <label for="file-upload" class="upload-btn">Browse Files</label>
+                
+                <div class="anchor-container" style="margin-top: 2rem;">
+                    <h3 class="upload-header">Select an Anchor:</h3>
+                    <div style="display: flex; gap: 2rem; margin-top: 1rem;">
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; color: #aeb0cf;">
+                            <input type="radio" name="anchor" value="anchor_1.png" checked> Anchor 1
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; color: #aeb0cf;">
+                            <input type="radio" name="anchor" value="anchor_2.png"> Anchor 2
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; color: #aeb0cf;">
+                            <input type="radio" name="anchor" value="anchor_3.png"> Anchor 3
+                        </label>
                     </div>
                 </div>
             </div>
@@ -42,6 +53,21 @@
                 </div>
                 <h3 class="status-text">Initializing Agent...</h3>
                 <p class="status-subtext">Gathering news, generating audio, and rendering visuals.</p>
+            </div>
+
+            <div id="sources-container" class="result-wrapper" style="display: none;">
+                <h3 class="status-text">Review Sources</h3>
+                <p class="status-subtext" style="margin-bottom: 1.5rem;">Uncheck any sources you wish to exclude.</p>
+                <div id="sources-list" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+                    </div>
+                <button id="generate-script-btn" class="button">Generate Script &rarr;</button>
+            </div>
+
+            <div id="script-container" class="result-wrapper" style="display: none;">
+                <h3 class="status-text">Review Script</h3>
+                <p class="status-subtext" style="margin-bottom: 1.5rem;">Edit the generated text-to-speech script below.</p>
+                <textarea id="script-text" class="input-box" style="width: 100%; height: 200px; resize: vertical; margin-bottom: 2rem;"></textarea>
+                <button id="render-video-btn" class="button">Render Video &rarr;</button>
             </div>
 
             <div id="result-container" class="result-wrapper" style="display: none;">
@@ -73,13 +99,20 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const generateBtn = document.querySelector('.button.intro'); 
+        const generateScriptBtn = document.getElementById('generate-script-btn');
+        const renderVideoBtn = document.getElementById('render-video-btn');
+        
         const loadingContainer = document.getElementById('loading-container');
+        const sourcesContainer = document.getElementById('sources-container');
+        const scriptContainer = document.getElementById('script-container');
         const resultContainer = document.getElementById('result-container');
         const statusText = document.querySelector('.status-text');
         
-        const topicInput = document.querySelector('.input-box');
-        const extensionsInput = document.getElementById('extensions-input');
-        const fileInput = document.getElementById('file-upload');
+        const topicInput = document.querySelector('.topic-input');
+        const lengthSelect = document.getElementById('video-length-select');
+        const sourcesList = document.getElementById('sources-list');
+        const scriptTextarea = document.getElementById('script-text');
+        
         const videoPlayer = document.querySelector('.main-video');
         const videoSource = videoPlayer.querySelector('source');
         const descriptionBox = document.getElementById("post-description");
@@ -89,94 +122,143 @@
         threadIdStore.id = "stored-thread-id";
         document.body.appendChild(threadIdStore);
 
+        let stepInterval;
+
+        function showLoading(message) {
+            document.querySelectorAll('.result-wrapper').forEach(el => el.style.display = 'none');
+            loadingContainer.style.display = 'flex';
+            statusText.innerText = message;
+        }
+
         generateBtn.addEventListener('click', async () => {
             const topic = topicInput.value.trim();
-            if (!topic) {
-                alert("Please enter a topic.");
-                return;
-            }
+            if (!topic) { alert("Please enter a topic."); return; }
 
-            resultContainer.style.display = 'none';
-            loadingContainer.style.display = 'flex';
-            
+            showLoading("Scanning news sources...");
             generateBtn.disabled = true;
-            generateBtn.style.opacity = '0.5';
-            generateBtn.innerText = "Processing...";
 
             const formData = new FormData();
             formData.append('topic', topic);
-            formData.append('extensions', extensionsInput.value || 0);
-            
-            if (fileInput.files.length > 0) {
-                formData.append('file', fileInput.files[0]);
-            }
+            formData.append('video_length', lengthSelect.value);
 
-            const steps = [
-                "Scanning news sources...",
-                "Generating audio script...",
-                "Synthesizing voiceover...",
-                "Rendering video visuals...",
-                "Syncing audio and video..."
-            ];
-            let stepIndex = 0;
-            const stepInterval = setInterval(() => {
-                if(stepIndex < steps.length) {
-                    statusText.innerText = steps[stepIndex];
-                    stepIndex++;
+            try {
+                const response = await fetch('/prepare/sources', { method: 'POST', body: formData });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    threadIdStore.value = data.thread_id;
+
+                    sourcesList.innerHTML = '';
+                    for (const [title, urls] of Object.entries(data.sources)) {
+                        const sourceDiv = document.createElement('div');
+                        sourceDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; background: #242852; padding: 1rem; border-radius: 8px; border: 1px solid #4A4E9B;";
+                        
+                        sourceDiv.innerHTML = `
+                            <input type="checkbox" class="source-checkbox" checked value='${JSON.stringify({[title]: urls})}' style="margin-top: 4px; cursor: pointer;">
+                            <p style="color: #F8F8FF; font-size: 0.9rem; margin: 0;">${title}</p>
+                        `;
+                        sourcesList.appendChild(sourceDiv);
+                    }
+
+                    loadingContainer.style.display = 'none';
+                    sourcesContainer.style.display = 'block';
+                    generateBtn.disabled = false;
+                } else {
+                    throw new Error(data.error || "Failed to fetch sources.");
                 }
-            }, 4000);
+            } catch (error) {
+                loadingContainer.style.display = 'none';
+                generateBtn.disabled = false;
+                alert("Error: " + error.message);
+            }
+        });
+
+
+        generateScriptBtn.addEventListener('click', async () => {
+            showLoading("Analyzing sources and drafting script...");
+
+            let selectedSources = {};
+            document.querySelectorAll('.source-checkbox:checked').forEach(cb => {
+                const parsed = JSON.parse(cb.value);
+                Object.assign(selectedSources, parsed);
+            });
+
+            try {
+                const response = await fetch('/prepare/script', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        thread_id: threadIdStore.value,
+                        selected_sources: selectedSources
+                    })
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    scriptTextarea.value = data.audio_script;
+                    loadingContainer.style.display = 'none';
+                    scriptContainer.style.display = 'block';
+                } else {
+                    throw new Error(data.error || "Failed to generate script.");
+                }
+            } catch (error) {
+                loadingContainer.style.display = 'none';
+                sourcesContainer.style.display = 'block';
+                alert("Error: " + error.message);
+            }
+        });
+
+
+        renderVideoBtn.addEventListener('click', async () => {
+            showLoading("Synthesizing voiceover and rendering visuals...");
+            const selectedAnchor = document.querySelector('input[name="anchor"]:checked').value;
+
+            const steps = ["Synthesizing voiceover...", "Rendering video visuals...", "Syncing audio and video..."];
+            let stepIndex = 0;
+            stepInterval = setInterval(() => {
+                if(stepIndex < steps.length) { statusText.innerText = steps[stepIndex]; stepIndex++; }
+            }, 5000);
 
             try {
                 const response = await fetch('/generate', {
                     method: 'POST',
-                    body: formData
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        thread_id: threadIdStore.value,
+                        audio_script: scriptTextarea.value,
+                        selected_anchor: selectedAnchor
+                    })
                 });
-
                 const data = await response.json();
-
                 clearInterval(stepInterval);
 
-                if (data.status === 'success' && data.video_url && data.description && data.thread_id) {
+                if (data.status === 'success') {
                     loadingContainer.style.display = 'none';
                     resultContainer.style.display = 'block';
                     
                     videoSource.src = data.video_url;
                     videoPlayer.load();
-
                     descriptionBox.textContent = data.description;
-
-                    threadIdStore.value = data.thread_id;
-                    console.log("Thread ID saved:", data.thread_id);
-                    
-                    generateBtn.disabled = false;
-                    generateBtn.style.opacity = '1';
-                    generateBtn.innerText = "Regenerate";
-                    
                     resultContainer.scrollIntoView({ behavior: 'smooth' });
                 } else {
-                    throw new Error(data.error || "Generation failed");
+                    throw new Error(data.error || "Generation failed.");
                 }
-
             } catch (error) {
                 clearInterval(stepInterval);
                 loadingContainer.style.display = 'none';
-                generateBtn.disabled = false;
-                generateBtn.style.opacity = '1';
-                generateBtn.innerText = "Generate";
+                scriptContainer.style.display = 'block';
                 alert("Error: " + error.message);
-                console.error(error);
             }
         });
-        
+
         document.getElementById('continue-btn').addEventListener('click', () => {
             const currentVideoUrl = videoSource.src;
-            const currentDescription = descriptionBox.textContent
-            const savedThreadId = document.getElementById("stored-thread-id").value;
+            const currentDescription = descriptionBox.textContent;
+            const savedThreadId = threadIdStore.value;
             
             if (currentVideoUrl && savedThreadId) {
                  window.location.href = `/publish?video=${encodeURIComponent(currentVideoUrl)}&thread_id=${savedThreadId}&post_description=${encodeURIComponent(currentDescription)}`;
              } else {
-                 console.error("Missing data:", { video: currentVideoUrl, thread: savedThreadId });
                  alert("Error: Missing Session ID. Please regenerate the video.");
              }
         });

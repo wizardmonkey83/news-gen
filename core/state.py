@@ -5,13 +5,15 @@ from typing import TypedDict, List, Optional
 class AgentState(TypedDict):
     # the topic input for the news story
     topic: str
-    num_extensions: Optional[str]
+    target_length: Optional[int]
+    selected_anchor: Optional[str]
 
     # fields are optional to avoid errors arisng from empty fields
     # ingestion
     news_summary: Optional[str]
-    # i think dict is correct
-    sources: dict[str]
+    rss_feed_response: Optional[dict]
+    neat_rss_sources: Optional[dict]
+    selected_sources: Optional[dict]
 
     # audio creation
     audio_script: Optional[str]
@@ -23,7 +25,6 @@ class AgentState(TypedDict):
 
     # storing video, desc in bucket
     storage_prefix: Optional[str]
-    reference_image_uri: Optional[str]
     # link to the final video
     video_url: Optional[str]
     

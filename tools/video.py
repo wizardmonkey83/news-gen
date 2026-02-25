@@ -20,7 +20,7 @@ client = genai.Client(
 
 # generates only the visuals for the video -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # veo docs: https://ai.google.dev/gemini-api/docs/video?example=dialogue
-def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: float, reference_image_uri: str = None):
+def generate_visuals(selected_anchor: str, storage_prefix: str, audio_length: float):
     if not MOCK_VIDEO and not SIMPLE_VIDEO and not REUSE_VIDEO:
         filename = "visual.mp4"
         if not LOCAL_DEV:
@@ -33,13 +33,7 @@ def generate_visuals(visual_prompt: str, storage_prefix: str, audio_length: floa
         else:
             num_extensions = math.ceil((audio_length - 8)/7)
 
-        # demo
-        if reference_image_uri:
-            gcs_uri = reference_image_uri
-        else:
-            gcs_uri = f"gs://{BUCKET_NAME}/anchor9-reference.png"
-
-
+        gcs_uri = f"gs://{BUCKET_NAME}/{selected_anchor}"
         # reference image docs: https://ai.google.dev/gemini-api/docs/video?example=dialogue#reference-images
         visual_reference_image = types.Image(
             gcs_uri=gcs_uri,

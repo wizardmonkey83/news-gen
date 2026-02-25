@@ -1,8 +1,8 @@
 from config import DESCRIPTION_PROMPT, PROJECT_ID, LOCAL_DEV, DEMO
 from tools.social import post_to_bsky
-from tools.news import collect_news
+from tools.news import collect_rss_sources_for_review, filter_selected_rss_sources
 from tools.video import generate_visuals, loop_image_to_video, generate_did_video
-from tools.text import generate_description, generate_text_to_speech_script, generate_visual_script
+from tools.text import generate_description, generate_text_to_speech_script, generate_visual_script, generate_rss_summary
 from tools.notification import send_request
 from tools.audio import generate_audio_snippet
 from tools.sheets import get_topic, mark_complete, store_sources
@@ -39,44 +39,41 @@ def load_prompts_and_get_topic(state: AgentState):
              storage_prefix = f"{topic}_{date.today()}"
         return {"storage_prefix": storage_prefix, "topic": topic}
 
-# collects news sources and creates a summary. also creates audio_script
-def collect_news_and_summary(state: AgentState):
-    result = collect_news(state["topic"])
-    news_summary = result["summary"]
-    sources = result["sources"]
+# collects news sources to display for approval
+def collect_sources_for_review(state: AgentState):
+    sources, formatted_response = collect_rss_sources_for_review(state["topic"])
 
-    audio_script = generate_text_to_speech_script(news_summary, state["num_extensions"])
+    return {"rss_feed_response": formatted_response, "neat_rss_sources": sources}
 
-    return {"news_summary": news_summary, "sources": sources, "audio_script": audio_script}
+# saves selected sources, generates audioo script to be approved
+def save_sources_create_audio_script(state: AgentState):
+    filtered_sources = filter_selected_rss_sources(approved_sources=state.get("selected_sources"), rss_feed_response=state.get("rss_feed_response"))
+
+    news_summary = generate_rss_summary(filtered_sources)
+
+    target_length = state.get("target_length", 8)
+    audio_script = generate_text_to_speech_script(news_summary=news_summary, target_length=target_length)
+
+    return {"news_summary": news_summary, "audio_script": audio_script}
 
 # saves sources to google sheets
 def save_news_sources_to_sheets(state: AgentState):
     sources = state["sources"]
     store_sources(sources)
-    # may want to include an interrupt here to allow source editing
 
 # handles audio creation
 def create_audio_for_video(state: AgentState):
-    audio_length = generate_audio_snippet(state["audio_script"], state["storage_prefix"])
+    audio_length = generate_audio_snippet(state.get("audio_script", ""), state.get("storage_prefix", ""))
     return {"audio_length": audio_length}
 
 # creates visuals
 def create_visual_for_video(state: AgentState):
-    # first create visual script
-    visual_script = generate_visual_script(state["audio_script"])
     # then create visuals
-    contents = generate_visuals(visual_script, state["storage_prefix"], state["audio_length"], state.get("reference_image_uri"))
-
-    # loop still image
-    # contents = loop_image_to_video(state["audio_length"], state["storage_prefix"])
+    contents = generate_visuals(state.get("selected_anchor", "anchor_1.png"), state.get("storage_prefix"), state.get("audio_length", 8))
 
     gs_link = contents["gs_link"]
     visual_length = contents["visuals_length"]
     return {"gs_link": gs_link, "visual_length": visual_length}
-
-    # D-ID gen
-    # signed_url = generate_did_video(state["audio_length"], state["storage_prefix"])
-    # return {"video_url": signed_url}
 
 # syncs audio and visuals.
 def connect_visual_and_audio_for_video(state: AgentState):
@@ -121,7 +118,8 @@ memory = FirestoreSaver(project_id=PROJECT_ID)
 config = {"configurable": {"thread_id": f"demo-suit-test-1292444732199429"}}
 
 graph.add_node("load_prompts_and_get_topic", load_prompts_and_get_topic)
-graph.add_node("collect_news_and_summary", collect_news_and_summary)
+graph.add_node("collect_sources_for_review", collect_sources_for_review)
+graph.add_node("save_sources_create_audio_script", save_sources_create_audio_script)
 graph.add_node("save_news_sources_to_sheets", save_news_sources_to_sheets)
 graph.add_node("create_audio_for_video", create_audio_for_video)
 graph.add_node("create_visual_for_video", create_visual_for_video)
@@ -132,8 +130,9 @@ graph.add_node("publish_video_and_description", publish_video_and_description)
 graph.add_node("mark_topic_complete", mark_topic_complete)
 
 graph.add_edge(START, "load_prompts_and_get_topic")
-graph.add_edge("load_prompts_and_get_topic", "collect_news_and_summary")
-graph.add_edge("collect_news_and_summary", "save_news_sources_to_sheets")
+graph.add_edge("load_prompts_and_get_topic", "collect_sources_for_review")
+graph.add_edge("collect_sources_for_review", "save_sources_create_audio_script")
+graph.add_edge("save_sources_create_audio_script", "save_news_sources_to_sheets")
 graph.add_edge("save_news_sources_to_sheets", "create_audio_for_video")
 graph.add_edge("create_audio_for_video", "create_visual_for_video")
 graph.add_edge("create_visual_for_video", "connect_visual_and_audio_for_video")
@@ -143,8 +142,14 @@ graph.add_edge("save_post_description", "publish_video_and_description")
 graph.add_edge("publish_video_and_description", "mark_topic_complete")
 graph.add_edge("mark_topic_complete", END)
 
-# run command
-app = graph.compile(interrupt_before=["publish_video_and_description"], checkpointer=memory)
+app = graph.compile(
+    interrupt_before=[
+        "save_sources_create_audio_script",
+        "save_news_sources_to_sheets",
+        "publish_video_and_description"
+    ], 
+    checkpointer=memory
+)
 
 if __name__ == "__main__":
     snapshot = app.get_state(config)
@@ -153,4 +158,4 @@ if __name__ == "__main__":
         app.invoke(None, config=config)
     else:
         # how to pass state?
-        app.invoke({"is_complete": False}, config=config)
+        app.invoke(None, config=config)

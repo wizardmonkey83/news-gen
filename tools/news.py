@@ -97,7 +97,7 @@ def collect_news(topic: str):
                     title = item.get("title")
                     rss_link = item.get("link")
                     if item.get("pubDate"):
-                        pub_date = item.get("pubDate", "no publication date for source found")
+                        pub_date = item.get("pubDate", "No publication date for source found")
 
                     if item.get("summary"):
                         desc = item.get("summary")
@@ -113,6 +113,7 @@ def collect_news(topic: str):
                     
                     payload[title].append(desc)
                 print("!!REAL!! SOURCES GATHERED AND PARSED...")
+                
                 response = client.models.generate_content(
                     model=TEXT_MODEL,
                     contents=[json.dumps(RSS_FEED_ANALYSIS_PROMPT), json.dumps(payload)]
@@ -141,3 +142,62 @@ def collect_news(topic: str):
         print("GENERATING MOCK NEWS SUMMARY....")
         print("SUCCESSFULLY CREATED MOCK NEWS SUMMARY")
         return {"summary": "Test news summary.", "sources": {}}
+
+
+def collect_rss_sources_for_review(topic: str):
+    try:
+
+        url = f"https://news.google.com/rss/search?q={topic}&hl=en-US&gl=US&ceid=US:en"
+        url = url.replace(" ", "%20")
+        formatted_response = feedparser.parse(url)
+
+        sources = defaultdict(list)
+        for item in formatted_response.entries:
+            title = item.get("title")
+            rss_link = item.get("link")
+            if item.get("pubDate"):
+                pub_date = item.get("pubDate", "No publication date for source found")
+
+            if item.get("summary"):
+                desc = item.get("summary")
+            elif item.get("summary_detail"):
+                desc = item.get("summary_detail")
+            else:
+                # should be cautious with this. likely includes additional html that may impact models ability to revise.
+                desc = item.get("description", "no description/summary for source found")
+            if item.get("source"):
+                # i think source_url is a proxy redirect link
+                source_url, source_title = item["source"]["href"], item["source"]["title"]
+                sources[source_title].append(rss_link)
+
+        return sources, formatted_response
+
+    except Exception as e:
+        return Exception(f"Error collecting RSS sources for review: {e}")
+    
+def filter_selected_rss_sources(approved_sources: dict, rss_feed_response: dict):
+    if not approved_sources:
+        return rss_feed_response
+    
+    try:
+        payload = defaultdict(list)
+        approved_urls = {url for urls in approved_sources.values() for url in urls}
+
+        for item in rss_feed_response.get("entries", []):
+            title = item.get("title")
+            
+            article_link = item.get("link") 
+            if article_link in approved_urls:
+                if item.get("summary"):
+                    desc = item.get("summary")
+                elif item.get("summary_detail"):
+                    desc = item.get("summary_detail")
+                else:
+                    desc = item.get("description", "no description/summary for source found")
+                
+                payload[title].append(desc)
+                
+        return dict(payload)
+    
+    except Exception as e:
+        return Exception(f"Error filtering RSS source list: {e}")

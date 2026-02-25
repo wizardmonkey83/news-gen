@@ -6,70 +6,96 @@ root_dir = os.path.dirname(os.path.dirname(current_dir))
 sys.path.append(root_dir)
 
 from flask import Flask, render_template, request, jsonify
-from google.cloud import storage, firestore
+from google.cloud import firestore
 import uuid
 
 from config import BUCKET_NAME, PROJECT_ID, VISUAL_SCRIPT_GUIDELINES_PROMPT, DESCRIPTION_PROMPT
 from tools.storage import bsky_to_firestore_recursive_update, bsky_prompt_changes_to_firestore
+from tools.news import collect_rss_sources_for_review, filter_selected_rss_sources
 from core.agent import app as agent_app
 from core.feedback import app as feedback_app
 
 app = Flask(__name__)
 
-def upload_to_gcs(file, destination_blob_name):
-    storage_client = storage.Client(project=PROJECT_ID)
-    bucket = storage_client.bucket(BUCKET_NAME)
-    blob = bucket.blob(destination_blob_name)
-    
-    blob.upload_from_file(file, content_type=file.content_type)
-    return f"gs://{BUCKET_NAME}/{destination_blob_name}"
-
 @app.route('/')
 def index():
     return render_template('start.html')
 
-@app.route('/generate', methods=['POST'])
-def generate_video():
+@app.route("/prepare/sources", methods=["POST"])
+def prepare_sources():
+
     try:
+        topic = request.form.get("topic")
+        video_length = request.form.get("video_length", 8)
 
-        topic = request.form.get('topic')
-        extensions_input = request.form.get('extensions', '0')
-        file = request.files.get('file')
-        
         if not topic:
-            return jsonify({"error": "Topic is required"}), 400
-
-        try:
-            num_extensions = int(extensions_input)
-        except ValueError:
-            num_extensions = 0
-
-        reference_image_uri = None
-        if file and file.filename != '':
-            filename = f"demo_uploads/{uuid.uuid4()}_{file.filename}"
-            reference_image_uri = upload_to_gcs(file, filename)
-            print(f"File uploaded to: {reference_image_uri}")
+            return jsonify({"error": "Topic is required."}), 400
         
-
         thread_id = f"web_demo_{uuid.uuid4()}"
         config = {"configurable": {"thread_id": thread_id}}
 
         initial_state = {
             "topic": topic,
-            "num_extensions": num_extensions,
-            "reference_image_uri": reference_image_uri,
-            "thread_id": thread_id,
+            "video_length": video_length
         }
 
-        final_state = agent_app.invoke(initial_state, config=config)
-
-        video_url = final_state.get("video_url")
-        post_description = final_state.get("post_description")
+        agent_app.invoke(initial_state, config=config)
+        current_state = agent_app.get_state(config).values
         
-        return jsonify({"status": "success", "video_url": video_url, "description": post_description, "thread_id": thread_id})
+        return jsonify({"status": "success", "thread_id": thread_id, "sources": current_state.get("neat_rss_sources", {})})
+    
+    except Exception as e:
+        print(f"Error occurred in /prepare/sources/: {e}")
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/prepare/script", methods=["POST"])
+def prepare_script():
+    try:
+        data = request.get_json()
+        thread_id = data.get("thread_id")
+        selected_sources = data.get("selected_sources")
+
+        if not thread_id:
+            return jsonify({"error": "Thread ID is required"}), 400
+
+        config = {"configurable": {"thread_id": thread_id}}
+
+        agent_app.update_state(config, {"selected_sources": selected_sources})
+        agent_app.invoke(None, config=config)
+
+        current_state = agent_app.get_state(config).values
+
+        return jsonify({"status": "success", "audio_script": current_state.get("audio_script", "")})
 
     except Exception as e:
-        print(f"Error in /generate: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/generate", methods=["POST"])
+def generate_video():
+    try:
+        data = request.get_json()
+        thread_id = data.get("thread_id")
+        final_script = data.get("audio_script")
+        selected_anchor = data.get("selected_anchor", "anchor_1.png") 
+
+        if not thread_id:
+            return jsonify({"error": "Thread ID is required"}), 400
+
+        config = {"configurable": {"thread_id": thread_id}}
+
+        agent_app.update_state(config, {
+            "audio_script": final_script,
+            "selected_anchor": selected_anchor
+        })
+
+        agent_app.invoke(None, config=config)
+
+        current_state = agent_app.get_state(config).values
+
+        return jsonify({"status": "success", "video_url": current_state.get("video_url"), "description": current_state.get("post_description")})
+
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
