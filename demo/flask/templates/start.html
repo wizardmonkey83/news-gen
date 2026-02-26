@@ -24,17 +24,28 @@
                     </select>
                 </div>
                 
-                <div class="anchor-container" style="margin-top: 2rem;">
+                <div class="anchor-container">
                     <h3 class="upload-header">Select an Anchor:</h3>
-                    <div style="display: flex; gap: 2rem; margin-top: 1rem;">
-                        <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; color: #aeb0cf;">
-                            <input type="radio" name="anchor" value="anchor_1.png" checked> Anchor 1
+                    <div class="anchor-options">
+                        <label class="anchor-card">
+                            <img src="{{ url_for('static', filename='anchor_1_thumb.png') }}" alt="Anchor 1" class="anchor-thumb">
+                            <div class="anchor-radio-wrapper">
+                                <input type="radio" name="anchor" value="anchor_1.png" class="anchor-radio" checked>
+                            </div>
                         </label>
-                        <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; color: #aeb0cf;">
-                            <input type="radio" name="anchor" value="anchor_2.png"> Anchor 2
+                        
+                        <label class="anchor-card">
+                            <img src="{{ url_for('static', filename='anchor_1_thumb.png') }}" alt="Anchor 2" class="anchor-thumb">
+                            <div class="anchor-radio-wrapper">
+                                <input type="radio" name="anchor" value="anchor_2.png" class="anchor-radio">
+                            </div>
                         </label>
-                        <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; color: #aeb0cf;">
-                            <input type="radio" name="anchor" value="anchor_3.png"> Anchor 3
+                        
+                        <label class="anchor-card">
+                            <img src="{{ url_for('static', filename='anchor_1_thumb.png') }}" alt="Anchor 3" class="anchor-thumb">
+                            <div class="anchor-radio-wrapper">
+                                <input type="radio" name="anchor" value="anchor_3.png" class="anchor-radio">
+                            </div>
                         </label>
                     </div>
                 </div>

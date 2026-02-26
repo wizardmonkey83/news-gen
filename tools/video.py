@@ -28,10 +28,12 @@ def generate_visuals(selected_anchor: str, storage_prefix: str, audio_length: fl
         else:
             local_path = os.path.join(tempfile.gettempdir(), filename)
 
-        if audio_length <= 8:
+        # in order to avoid moviepy write_videofile crashing over audio >= visual length
+        padded_audio_len = audio_length + 0.5
+        if padded_audio_len <= 8:
             num_extensions = 0
         else:
-            num_extensions = math.ceil((audio_length - 8)/7)
+            num_extensions = math.ceil((padded_audio_len - 8)/7)
 
         gcs_uri = f"gs://{BUCKET_NAME}/{selected_anchor}"
         # reference image docs: https://ai.google.dev/gemini-api/docs/video?example=dialogue#reference-images
