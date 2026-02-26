@@ -1,9 +1,8 @@
 from config import DESCRIPTION_PROMPT, PROJECT_ID, LOCAL_DEV, DEMO
 from tools.social import post_to_bsky
 from tools.news import collect_rss_sources_for_review, filter_selected_rss_sources
-from tools.video import generate_visuals, loop_image_to_video, generate_did_video
-from tools.text import generate_description, generate_text_to_speech_script, generate_visual_script, generate_rss_summary
-from tools.notification import send_request
+from tools.video import generate_visuals
+from tools.text import generate_description, generate_text_to_speech_script, generate_rss_summary
 from tools.audio import generate_audio_snippet
 from tools.sheets import get_topic, mark_complete, store_sources
 from tools.sync import sync_visual_and_audio
@@ -41,9 +40,9 @@ def load_prompts_and_get_topic(state: AgentState):
 
 # collects news sources to display for approval
 def collect_sources_for_review(state: AgentState):
-    sources, formatted_response = collect_rss_sources_for_review(state["topic"])
+    sources, rss_feed_response = collect_rss_sources_for_review(state["topic"])
 
-    return {"rss_feed_response": formatted_response, "neat_rss_sources": sources}
+    return {"rss_feed_response": rss_feed_response, "neat_rss_sources": sources}
 
 # saves selected sources, generates audioo script to be approved
 def save_sources_create_audio_script(state: AgentState):
@@ -58,7 +57,7 @@ def save_sources_create_audio_script(state: AgentState):
 
 # saves sources to google sheets
 def save_news_sources_to_sheets(state: AgentState):
-    sources = state["sources"]
+    sources = state.get("selected_sources", {})
     store_sources(sources)
 
 # handles audio creation

@@ -11,9 +11,6 @@
                 <p class="desc">
                     Input a Topic (required) and Video Length (required).
                 </p>
-                <p class="note">
-                    Note: Video length must be an integer when subtracted eight and divided by seven ((Length - 8) / 7 == int).
-                </p>
             </div>
             <div class="input-container">
                 <div class="input-box-container" style="justify-content: flex-start; gap: 1rem;">
@@ -212,12 +209,12 @@
         renderVideoBtn.addEventListener('click', async () => {
             showLoading("Synthesizing voiceover and rendering visuals...");
             const selectedAnchor = document.querySelector('input[name="anchor"]:checked').value;
-
+            
             const steps = ["Synthesizing voiceover...", "Rendering video visuals...", "Syncing audio and video..."];
             let stepIndex = 0;
             stepInterval = setInterval(() => {
                 if(stepIndex < steps.length) { statusText.innerText = steps[stepIndex]; stepIndex++; }
-            }, 5000);
+            }, 15000);
 
             try {
                 const response = await fetch('/generate', {
@@ -230,18 +227,40 @@
                     })
                 });
                 const data = await response.json();
-                clearInterval(stepInterval);
 
-                if (data.status === 'success') {
-                    loadingContainer.style.display = 'none';
-                    resultContainer.style.display = 'block';
+                if (data.status === 'processing') {
                     
-                    videoSource.src = data.video_url;
-                    videoPlayer.load();
-                    descriptionBox.textContent = data.description;
-                    resultContainer.scrollIntoView({ behavior: 'smooth' });
+                    const pollInterval = setInterval(async () => {
+                        try {
+                            const statusResponse = await fetch(`/status/${threadIdStore.value}`);
+                            const statusData = await statusResponse.json();
+
+                            if (statusData.status === 'success') {
+                                clearInterval(pollInterval);
+                                clearInterval(stepInterval);
+
+                                loadingContainer.style.display = 'none';
+                                resultContainer.style.display = 'block';
+                                
+                                videoSource.src = statusData.video_url;
+                                videoPlayer.load();
+                                descriptionBox.textContent = statusData.description;
+                                resultContainer.scrollIntoView({ behavior: 'smooth' });
+                            } else if (statusData.error) {
+                                throw new Error(statusData.error);
+                            }
+                            
+                        } catch (pollError) {
+                            clearInterval(pollInterval);
+                            clearInterval(stepInterval);
+                            loadingContainer.style.display = 'none';
+                            scriptContainer.style.display = 'block';
+                            alert("Polling Error: " + pollError.message);
+                        }
+                    }, 10000);
+
                 } else {
-                    throw new Error(data.error || "Generation failed.");
+                    throw new Error(data.error || "Generation failed to start.");
                 }
             } catch (error) {
                 clearInterval(stepInterval);

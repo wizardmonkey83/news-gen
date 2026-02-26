@@ -1,4 +1,4 @@
-from config import BUCKET_NAME, PROJECT_ID, SYNC_LABS_API_KEY, MOCK_SYNC
+from config import BUCKET_NAME, PROJECT_ID, SYNC_LABS_API_KEY, MOCK_SYNC, REUSE_VIDEO
 
 import tempfile
 import time
@@ -55,8 +55,12 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
         storage_client = storage.Client(project=PROJECT_ID)
         bucket = storage_client.bucket(BUCKET_NAME)
 
-        visual_blob = bucket.blob(f"{storage_prefix}/visual.mp4")
-        visual_blob.download_to_filename(local_visual_path)
+        if not REUSE_VIDEO:
+            visual_blob = bucket.blob(f"{storage_prefix}/visual.mp4")
+            visual_blob.download_to_filename(local_visual_path)
+        else:
+            visual_blob = bucket.blob(f"reuse_visual.mp4")
+            visual_blob.download_to_filename(local_visual_path)
 
         audio_blob = bucket.blob(f"{storage_prefix}/audio.mp3")
         audio_blob.download_to_filename(local_audio_path)

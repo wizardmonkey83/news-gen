@@ -177,8 +177,8 @@ def generate_visuals(selected_anchor: str, storage_prefix: str, audio_length: fl
     
     elif REUSE_VIDEO:
         return {
-            "gs_link": f"gs://{BUCKET_NAME}/reuse_video.mp4",
-            "visuals_length": 13
+            "gs_link": f"gs://{BUCKET_NAME}/reuse_visual.mp4",
+            "visuals_length": 15
         }
     
 

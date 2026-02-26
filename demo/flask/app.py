@@ -1,5 +1,6 @@
 import sys
 import os
+import threading
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.dirname(os.path.dirname(current_dir))
@@ -11,7 +12,6 @@ import uuid
 
 from config import BUCKET_NAME, PROJECT_ID, VISUAL_SCRIPT_GUIDELINES_PROMPT, DESCRIPTION_PROMPT
 from tools.storage import bsky_to_firestore_recursive_update, bsky_prompt_changes_to_firestore
-from tools.news import collect_rss_sources_for_review, filter_selected_rss_sources
 from core.agent import app as agent_app
 from core.feedback import app as feedback_app
 
@@ -89,11 +89,35 @@ def generate_video():
             "selected_anchor": selected_anchor
         })
 
-        agent_app.invoke(None, config=config)
+        def run_agent_in_background():
+            try:
+                agent_app.invoke(None, config=config)
+            except Exception as e:
+                print(f"Error during background generation: {e}")
 
+        threading_thread = threading.Thread(target=run_agent_in_background)
+        threading_thread.start()
+
+        return jsonify({"status": "processing"})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@app.route("/status/<thread_id>", methods=["GET"])
+def check_status(thread_id):
+    try:
+        config = {"configurable": {"thread_id": thread_id}}
+    
         current_state = agent_app.get_state(config).values
 
-        return jsonify({"status": "success", "video_url": current_state.get("video_url"), "description": current_state.get("post_description")})
+        video_url = current_state.get("video_url")
+        description = current_state.get("post_description")
+
+        if video_url and description:
+            return jsonify({"status": "success", "video_url": video_url, "description": description})
+            
+        return jsonify({"status": "processing"})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

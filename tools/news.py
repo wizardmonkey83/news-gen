@@ -152,6 +152,8 @@ def collect_rss_sources_for_review(topic: str):
         formatted_response = feedparser.parse(url)
 
         sources = defaultdict(list)
+        serializable_formatted_response = []
+
         for item in formatted_response.entries:
             title = item.get("title")
             rss_link = item.get("link")
@@ -170,7 +172,11 @@ def collect_rss_sources_for_review(topic: str):
                 source_url, source_title = item["source"]["href"], item["source"]["title"]
                 sources[source_title].append(rss_link)
 
-        return sources, formatted_response
+            serializable_formatted_response.append({"title": title, "link": rss_link, "summary": desc})
+
+        rss_feed_response = {"entries": serializable_formatted_response}
+
+        return sources, rss_feed_response
 
     except Exception as e:
         return Exception(f"Error collecting RSS sources for review: {e}")

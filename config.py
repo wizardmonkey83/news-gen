@@ -33,7 +33,7 @@ MOCK_SOCIAL = False
 MOCK_SYNC = True
 # simple videos are videos where both audio and visuals are created together. as opposed to generating them seperately, and splicing together.
 SIMPLE_VIDEO = True
-SIMPLE_AUDIO = True
+SIMPLE_AUDIO = False
 REUSE_VIDEO = True
 
 # for feedback
@@ -45,7 +45,7 @@ LOCAL_FIRESTORE_METRICS = True
 
 # for agent
 MULTIPLE_VIDEO = False
-RSS_FEED = False
+RSS_FEED = True
 
 METRIC_REVIEW_PROMPT = {
     "analyst_role": {
