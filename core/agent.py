@@ -40,13 +40,13 @@ def load_prompts_and_get_topic(state: AgentState):
 
 # collects news sources to display for approval
 def collect_sources_for_review(state: AgentState):
-    sources, rss_feed_response = collect_rss_sources_for_review(state["topic"])
+    sources, rss_feed_response = collect_rss_sources_for_review(topic=state["topic"])
 
     return {"rss_feed_response": rss_feed_response, "neat_rss_sources": sources}
 
 # saves selected sources, generates audioo script to be approved
 def save_sources_create_audio_script(state: AgentState):
-    filtered_sources = filter_selected_rss_sources(approved_sources=state.get("selected_sources"), rss_feed_response=state.get("rss_feed_response"))
+    filtered_sources = filter_selected_rss_sources(approved_sources=state.get("selected_sources"), rss_feed_response=state["rss_feed_response"])
 
     news_summary = generate_rss_summary(filtered_sources)
 
@@ -62,13 +62,13 @@ def save_news_sources_to_sheets(state: AgentState):
 
 # handles audio creation
 def create_audio_for_video(state: AgentState):
-    audio_length = generate_audio_snippet(state.get("audio_script", ""), state.get("storage_prefix", ""))
+    audio_length = generate_audio_snippet(audio_script=state["audio_script"], storage_prefix=state["storage_prefix"])
     return {"audio_length": audio_length}
 
 # creates visuals
 def create_visual_for_video(state: AgentState):
     # then create visuals
-    contents = generate_visuals(state.get("selected_anchor", "anchor_1.png"), state.get("storage_prefix"), state.get("audio_length", 8))
+    contents = generate_visuals(selected_anchor=state.get("selected_anchor", "anchor_1.png"), storage_prefix=state["storage_prefix"], audio_length=state["audio_length"])
 
     gs_link = contents["gs_link"]
     visual_length = contents["visuals_length"]
@@ -76,7 +76,7 @@ def create_visual_for_video(state: AgentState):
 
 # syncs audio and visuals.
 def connect_visual_and_audio_for_video(state: AgentState):
-    signed_url = sync_visual_and_audio(state["visual_length"], state["audio_length"], state["storage_prefix"])
+    signed_url = sync_visual_and_audio(visual_length=state["visual_length"], audio_length=state["audio_length"], storage_prefix=state["storage_prefix"])
     return {"video_url": signed_url}
 
 # creates video description
@@ -87,7 +87,7 @@ def create_post_description_for_video(state: AgentState):
 
 # saves description to bucket
 def save_post_description(state: AgentState):
-    desc_to_bucket(state["post_description"], state["storage_prefix"])
+    desc_to_bucket(description=state["post_description"], storage_prefix=state["storage_prefix"])
 
 # once video is approved for publishing
 def publish_video_and_description(state: AgentState):
@@ -95,7 +95,7 @@ def publish_video_and_description(state: AgentState):
         post_urls = {}
         for site in state["post_platforms"]:
             if site == "bsky":
-                bsky_post_url = post_to_bsky(state["post_description"], state["storage_prefix"])
+                bsky_post_url = post_to_bsky(description=state["post_description"], storage_prefix=state["storage_prefix"])
                 post_urls["bsky_post_url"] = bsky_post_url
             # more sites to come
     
@@ -106,14 +106,13 @@ def publish_video_and_description(state: AgentState):
 # marks the topic in the google sheet as complete
 def mark_topic_complete(state: AgentState):
     if not DEMO:
-        mark_complete(state["post_urls"])
+        mark_complete(state.get("post_urls", []))
     return None
 
 graph = StateGraph(AgentState)
 
 client = firestore.Client(project=PROJECT_ID)
 memory = FirestoreSaver(project_id=PROJECT_ID)
-# thread_id is the slot the state is saved to
 config = {"configurable": {"thread_id": f"demo-suit-test-1292444732199429"}}
 
 graph.add_node("load_prompts_and_get_topic", load_prompts_and_get_topic)
@@ -141,14 +140,7 @@ graph.add_edge("save_post_description", "publish_video_and_description")
 graph.add_edge("publish_video_and_description", "mark_topic_complete")
 graph.add_edge("mark_topic_complete", END)
 
-app = graph.compile(
-    interrupt_before=[
-        "save_sources_create_audio_script",
-        "save_news_sources_to_sheets",
-        "publish_video_and_description"
-    ], 
-    checkpointer=memory
-)
+app = graph.compile(interrupt_before=["save_sources_create_audio_script", "save_news_sources_to_sheets", "publish_video_and_description"], checkpointer=memory)
 
 if __name__ == "__main__":
     snapshot = app.get_state(config)
@@ -156,5 +148,4 @@ if __name__ == "__main__":
         # if the agent was paused it will resume where it left off
         app.invoke(None, config=config)
     else:
-        # how to pass state?
         app.invoke(None, config=config)

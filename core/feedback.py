@@ -14,7 +14,7 @@ from tools.sentiment import review_bsky_metrics
 from tools.staging import stage_prompts_for_review
 from tools.storage import bsky_metrics_to_firestore, bsky_prompt_changes_to_firestore
 
-
+# grabs post urls from sheet
 def starter(state: FeedbackState):
     if not state.get("bsky_post_urls"):
         bsky_post_urls = get_bsky_url()
@@ -25,22 +25,22 @@ def starter(state: FeedbackState):
 
 # extracts metrics/engagement from post 
 def extracter(state: FeedbackState):
-    post_metrics = extract_bsky_metrics(state["bsky_post_urls"])
-    post_metric_summary = summarize_bsky_metrics(post_metrics)
+    post_metrics = extract_bsky_metrics(bsky_post_urls=state["bsky_post_urls"])
+    post_metric_summary = summarize_bsky_metrics(post_metrics=post_metrics)
     return {"post_metrics": post_metrics, "post_metric_summary": post_metric_summary}
 
 # saves post_metrics to firestore
 def converter(state: FeedbackState):
-    bsky_metrics_to_firestore(state["post_metrics"])
+    bsky_metrics_to_firestore(metrics=state["post_metrics"])
 
 # compares metrics to current prompt/s
 def reviewer(state: FeedbackState):
-    dict_video_response, dict_desc_response = review_bsky_metrics(state["post_metrics"])
+    dict_video_response, dict_desc_response = review_bsky_metrics(metrics=state["post_metrics"])
     return {"dict_video_response": dict_video_response, "dict_desc_response": dict_desc_response}
 
 def stager(state: FeedbackState, config: RunnableConfig):
     thread_id = config["configurable"].get("thread_id")
-    stage_prompts_for_review(state["post_metric_summary"], state["dict_video_response"], state["dict_desc_response"], thread_id)
+    stage_prompts_for_review(metrics_summary=state["post_metric_summary"], dict_video_response=state["dict_video_response"], dict_desc_response=state["dict_desc_response"], thread=thread_id)
 
 
 def updater(state: FeedbackState, config: RunnableConfig):

@@ -32,8 +32,6 @@ def generate_signed_url(bucket_name, blob_name):
 # moviepy docs: https://zulko.github.io/moviepy/index.html
 def sync_visual_and_audio(visual_length: float, audio_length: float, storage_prefix: str):
 
-    ROBOT_MOUTH_COORDS = [2039, 539]
-
     # to avoid UnboundLocalErrors in the finally block
     local_visual_path = None
     local_audio_path = None
