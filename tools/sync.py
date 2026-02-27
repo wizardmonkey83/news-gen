@@ -64,7 +64,7 @@ def sync_visual_and_audio(visual_length: float, audio_length: float, storage_pre
         audio_blob.download_to_filename(local_audio_path)
 
         if not MOCK_SYNC:
-            sync_client = Sync(api_key=SYNC_LABS_API_KEY)
+            sync_client = Sync(api_key=None)
 
             sync_operation = sync_client.generations.create_with_files(
                 model="lipsync-2",
