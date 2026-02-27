@@ -18,7 +18,7 @@ def generate_description(prompt: str, news_summary: str):
             print("!!REAL!! POST DESCRIPTION SUCCESSFULLY CREATED")
             return response.text
         except Exception as e:
-            return Exception(f"Error generating post description: {e}")
+            return f"Error generating post description: {e}"
     else:
         print("GENERATING MOCK POST DESCRIPTION....")
         print("SUCCESSFULLY CREATED MOCK POST DESCRIPTION")
@@ -57,4 +57,4 @@ def generate_rss_summary(approved_sources: dict):
         return response.text
     
     except Exception as e:
-        return Exception(f"Error generating RSS summary: {e}")
+        return f"Error generating RSS summary: {e}"

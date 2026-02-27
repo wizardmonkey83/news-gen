@@ -161,8 +161,9 @@
                         const sourceDiv = document.createElement('div');
                         sourceDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; background: #242852; padding: 1rem; border-radius: 8px; border: 1px solid #4A4E9B;";
                         
+                        const encodedData = encodeURIComponent(JSON.stringify({[title]: urls}));
                         sourceDiv.innerHTML = `
-                            <input type="checkbox" class="source-checkbox" checked value='${JSON.stringify({[title]: urls})}' style="margin-top: 4px; cursor: pointer;">
+                            <input type="checkbox" class="source-checkbox" checked value="${encodedData}" style="margin-top: 4px; cursor: pointer;">
                             <p style="color: #F8F8FF; font-size: 0.9rem; margin: 0;">${title}</p>
                         `;
                         sourcesList.appendChild(sourceDiv);
@@ -187,7 +188,7 @@
 
             let selectedSources = {};
             document.querySelectorAll('.source-checkbox:checked').forEach(cb => {
-                const parsed = JSON.parse(cb.value);
+                const parsed = JSON.parse(decodeURIComponent(cb.value));
                 Object.assign(selectedSources, parsed);
             });
 
