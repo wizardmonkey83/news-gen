@@ -1,4 +1,4 @@
-from config import BUCKET_NAME, PROJECT_ID, SYNC_LABS_API_KEY, MOCK_SYNC, REUSE_VIDEO
+from config import BUCKET_NAME, PROJECT_ID, MOCK_SYNC, REUSE_VIDEO
 
 import tempfile
 import time
