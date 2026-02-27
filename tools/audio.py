@@ -47,5 +47,5 @@ def generate_audio_snippet(audio_script: str, storage_prefix: str):
         raise Exception(f"!!REAL!! ERROR GENERATING AUDIO FILE: {e}")
 
     finally:
-        if os.path.exists(local_audio_path):
+        if local_audio_path and os.path.exists(local_audio_path):
             os.remove(local_audio_path)

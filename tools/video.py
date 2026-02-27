@@ -62,7 +62,7 @@ def generate_visuals(selected_anchor: str, storage_prefix: str, audio_length: fl
             operation = client.operations.get(operation)
 
         if operation.error:
-            print(f"Error generating first video: {operation.error}")
+            raise Exception(f"Error generating first video: {operation.error}")
 
         generated_video = operation.response.generated_videos[0]
 
