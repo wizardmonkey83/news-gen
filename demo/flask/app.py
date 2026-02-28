@@ -10,12 +10,21 @@ from flask import Flask, render_template, request, jsonify
 from google.cloud import firestore
 import uuid
 
-from config import BUCKET_NAME, PROJECT_ID, VISUAL_SCRIPT_GUIDELINES_PROMPT, DESCRIPTION_PROMPT
+from config import BUCKET_NAME, PROJECT_ID, VISUAL_SCRIPT_GUIDELINES_PROMPT, DESCRIPTION_PROMPT, FLASK_AUTH_PASS, FLASK_AUTH_USERNAME
 from tools.storage import bsky_to_firestore_recursive_update, bsky_prompt_changes_to_firestore
 from core.agent import app as agent_app
 from core.feedback import app as feedback_app
 
+from flask_basicauth import BasicAuth
+from decouple import config
+
 app = Flask(__name__)
+
+app.config['BASIC_AUTH_USERNAME'] = FLASK_AUTH_USERNAME
+app.config['BASIC_AUTH_PASSWORD'] = FLASK_AUTH_PASS
+app.config['BASIC_AUTH_FORCE'] = True
+
+basic_auth = BasicAuth(app)
 
 @app.route('/')
 def index():

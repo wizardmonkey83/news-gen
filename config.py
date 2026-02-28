@@ -14,6 +14,9 @@ BSKY_PASSWORD = config("BSKY_PASSWORD")
 
 ELEVEN_LABS_API_KEY = config("ELEVEN_LABS_API_KEY")
 
+FLASK_AUTH_USERNAME = config("FLASK_AUTH_USERNAME")
+FLASK_AUTH_PASS = config("FLASK_AUTH_PASS")
+
 TEXT_MODEL = "gemini-2.5-pro"
 VIDEO_MODEL = "veo-3.1-generate-preview"
 SIMPLE_VIDEO_MODEL = "veo-3.1-fast-generate-preview"
