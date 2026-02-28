@@ -36,7 +36,7 @@ def prepare_sources():
 
         initial_state = {
             "topic": topic,
-            "video_length": video_length
+            "target_length": video_length
         }
 
         agent_app.invoke(initial_state, config=config)
