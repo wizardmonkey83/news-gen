@@ -8,8 +8,11 @@ import requests
 from sync import Sync
 from datetime import timedelta
 from google.cloud import storage
+import google.auth 
+import google.auth.transport.requests
 from moviepy.video.io.VideoFileClip import VideoFileClip, AudioFileClip
 from sync.common import GenerationOptions, ActiveSpeaker
+from config import SERVICE_ACCOUNT_EMAIL
 
 
 # splices together the visual and audio files to create a video --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -19,11 +22,16 @@ def generate_signed_url(bucket_name, blob_name):
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(blob_name)
 
+    credentials, _ = google.auth.default()
+    if not credentials.valid:
+        credentials.refresh(google.auth.transport.requests.Request())
+
     url = blob.generate_signed_url(
         version="v4",
-        # think 24 is good
         expiration=timedelta(hours=24),
         method="GET",
+        service_account_email=SERVICE_ACCOUNT_EMAIL,
+        access_token=credentials.token,
     )
     return url
 

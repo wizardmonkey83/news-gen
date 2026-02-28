@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 PROJECT_ID = config("GOOGLE_CLOUD_PROJECT_ID")
 LOCATION = config("GOOGLE_CLOUD_REGION")
 BUCKET_NAME = config("BUCKET_NAME")
+SERVICE_ACCOUNT_EMAIL = config("SERVICE_ACCOUNT_EMAIL")
 
 SPREADSHEET_ID = config("SPREADSHEET_ID")
 
@@ -25,9 +26,9 @@ MOCK_DESC = False
 MOCK_SOCIAL = False
 MOCK_SYNC = True
 # simple videos are videos where both audio and visuals are created together. as opposed to generating them seperately, and splicing together.
-SIMPLE_VIDEO = False
-SIMPLE_AUDIO = False
-REUSE_VIDEO = False
+SIMPLE_VIDEO = True
+SIMPLE_AUDIO = True
+REUSE_VIDEO = True
 
 # for feedback
 MOCK_BSKY_METRICS = False
