@@ -62,7 +62,7 @@ def save_news_sources_to_sheets(state: AgentState):
 
 # handles audio creation
 def create_audio_for_video(state: AgentState):
-    audio_length = generate_audio_snippet(audio_script=state["audio_script"], storage_prefix=state["storage_prefix"])
+    audio_length = generate_audio_snippet(audio_script=state["audio_script"], storage_prefix=state["storage_prefix"], selected_anchor=state["selected_anchor"])
     return {"audio_length": audio_length}
 
 # creates visuals
