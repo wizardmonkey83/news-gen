@@ -12,7 +12,7 @@ client = ElevenLabs(
 
 # create audio snippet using script for video ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # elevenlabs docs: https://elevenlabs.io/docs/api-reference/text-to-speech/convert
-def generate_audio_snippet(audio_script: str, storage_prefix: str):
+def generate_audio_snippet(audio_script: str, storage_prefix: str, selected_anchor: str):
     print("!!REAL!! GENERATING AUDIO")
 
     local_audio_path = None
@@ -23,9 +23,16 @@ def generate_audio_snippet(audio_script: str, storage_prefix: str):
     blob = bucket.blob(storage_path)
 
     try:
+        if selected_anchor == "anchor_1.png":
+            voice_id = "hpp4J3VqNfWAUOO0d1Us"
+        elif selected_anchor == "anchor_2.png":
+            voice_id = "EXAVITQu4vr4xnSDxMaL"
+        else:
+            voice_id = "FGY2WhTYpPnrIDTdsKH5"
+
         audio = client.text_to_speech.convert(
             # placeholder voice id
-            voice_id="JBFqnCBsd6RMkjVDRZzb",
+            voice_id=voice_id,
             output_format="mp3_44100_128",
             text=audio_script,
         )
